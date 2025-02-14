@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1091505035748",
+    "project_id": "horsifyapp",
+    "storage_bucket": "horsifyapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1091505035748:android:5d7596e01e07bde9c0cff1",
+        "android_client_info": {
+          "package_name": "com.horsifyapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDy9tvMGcn5b5vA5fHNAF4ABrQXOniHSdA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
