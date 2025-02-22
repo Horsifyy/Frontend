@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, FlatList, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, FlatList, StyleSheet, Alert, SafeAreaView} from 'react-native';
 import auth from '@react-native-firebase/auth';
 import { API_URL } from '../../api/config';
 
@@ -43,6 +43,8 @@ const RegisterStudent = ({ navigation }) => {
   };
 
   return (
+    
+    <SafeAreaView style={styles.container}>
     <View style={styles.container}>
       <View style={styles.topShape} />
 
@@ -127,6 +129,7 @@ const RegisterStudent = ({ navigation }) => {
         </View>
       </Modal>
     </View>
+    </SafeAreaView>
   );
 };
 

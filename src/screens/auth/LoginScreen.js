@@ -6,12 +6,13 @@ import { API_URL } from '../../api/config';
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userType, setUserType] = useState('Estudiante'); // Estado para la selección de usuario
+  const [userType, setUserType] = useState('Estudiante'); 
   const [errorMessage, setErrorMessage] = useState('');
 
   const isValidEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
+  
   const handleLogin = async () => {
     try {
 
@@ -39,7 +40,7 @@ const LoginScreen = ({ navigation }) => {
         throw new Error("El backend no devolvió datos de usuario");
       }
 
-      Alert.alert("Bienvenid@", `${data.user.name}`);
+      Alert.alert("Bienvenid@");
     } catch (error) {
       console.error("Error en el inicio de sesión:", error);
       Alert.alert("Error", "No se pudo iniciar sesión");

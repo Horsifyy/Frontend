@@ -1,27 +1,34 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
-import { handlePasswordReset } from 'firebase/auth';
 import { API_URL } from '../../api/config';
 
-const PasswordResetScreen = ({ navigation }) => {
+const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
+  const [newPassword, setNewPassword] = useState('');
 
-  const handleForgotPassword = async () => {
+  const handleResetPassword = async () => {
     try {
       const response = await fetch(`${API_URL}/api/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, newPassword }),
       });
-  
+
       const data = await response.json();
-      console.log("Correo de recuperación enviado:", data);
-      Alert.alert("Correo enviado", "Revisa tu bandeja de entrada.");
+      console.log("Respuesta del backend:", data);
+
+      if (response.status === 200) {
+        Alert.alert("Éxito", "Tu contraseña ha sido actualizada.");
+        navigation.navigate("Login"); 
+      } else {
+        throw new Error(data.error || "Error al recuperar la contraseña.");
+      }
     } catch (error) {
-      console.error("Error al recuperar la contraseña:", error);
+      console.error("Error en la recuperación de contraseña:", error);
+      Alert.alert("Error", error.message);
     }
   };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Recuperar Contraseña</Text>
@@ -33,10 +40,16 @@ const PasswordResetScreen = ({ navigation }) => {
         onChangeText={setEmail}
       />
 
-      {message ? <Text style={styles.messageText}>{message}</Text> : null}
+      <TextInput
+        style={styles.input}
+        placeholder="Ingresa tu nueva contraseña"
+        value={newPassword}
+        onChangeText={setNewPassword}
+        secureTextEntry
+      />
 
-      <TouchableOpacity style={styles.button} onPress={handlePasswordReset}>
-        <Text style={styles.buttonText}>Enviar enlace</Text>
+      <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
+        <Text style={styles.buttonText}>Actualizar Contraseña</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -46,7 +59,7 @@ const PasswordResetScreen = ({ navigation }) => {
   );
 };
 
-export default PasswordResetScreen;
+export default ForgotPasswordScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -80,10 +93,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
-  },
-  messageText: {
-    color: '#007AFF',
-    marginBottom: 10,
   },
   backText: {
     color: '#007AFF',
