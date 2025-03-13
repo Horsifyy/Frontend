@@ -6,46 +6,74 @@ import { API_URL } from '../../api/config';
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userType, setUserType] = useState('Estudiante'); 
+  const [userType, setUserType] = useState('Estudiante'); // Estado para la selección de usuario
   const [errorMessage, setErrorMessage] = useState('');
 
   const isValidEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
-  
+
   const handleLogin = async () => {
     try {
-
       if (!email || !isValidEmail(email)) {
         Alert.alert("Error", "Por favor ingresa un email válido.");
         return;
       }
-
+  
+      if (!password) {
+        Alert.alert("Error", "Por favor ingresa tu contraseña.");
+        return;
+      }
+  
+      setErrorMessage(""); // Limpiar cualquier error previo
+      
+      // Iniciar sesión en Firebase
       const userCredential = await auth().signInWithEmailAndPassword(email.trim(), password);
       const user = userCredential.user;
-      const idToken = await user.getIdToken();
-
+      const idToken = await user.getIdToken(true);
+  
+      console.log(`Iniciando sesión con email: ${email}, tipo de usuario seleccionado: ${userType}`);
+  
+      // Estructura de petición mejorada: token solo en el body
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json", "Authorization": `Bearer ${idToken}`
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ idToken }),
+        body: JSON.stringify({ 
+          idToken, 
+          expectedRole: userType  // El backend debe validar este rol
+        }),
       });
-
+  
       const data = await response.json();
-      console.log("Usuario autenticado:", data);
-
-      if (!data.user) {
-        throw new Error("El backend no devolvió datos de usuario");
+      
+      if (!response.ok) {
+        throw new Error(data.error || "Error al iniciar sesión");
       }
-
-      Alert.alert("Bienvenid@");
+  
+      // Inicio de sesión exitoso - el backend ya verificó que el rol coincide
+      console.log("Inicio de sesión exitoso:", data);
+      
+      // Navegar a la pantalla correspondiente
+      navigation.replace(userType === 'Estudiante' ? 'StudentHome' : 'TeacherHome');
+      
     } catch (error) {
       console.error("Error en el inicio de sesión:", error);
-      Alert.alert("Error", "No se pudo iniciar sesión");
+      
+      // Manejar errores específicos de Firebase
+      if (error.code === 'auth/user-not-found') {
+        setErrorMessage("No existe una cuenta con este email.");
+      } else if (error.code === 'auth/wrong-password') {
+        setErrorMessage("Contraseña incorrecta.");
+      } else if (error.code === 'auth/too-many-requests') {
+        setErrorMessage("Demasiados intentos fallidos. Intenta más tarde.");
+      } else {
+        setErrorMessage(error.message || "Error al iniciar sesión");
+      }
     }
   };
+
 
   return (
     <View style={styles.container}>

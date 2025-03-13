@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, FlatList, StyleSheet, Alert, SafeAreaView} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, FlatList, StyleSheet, Alert } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import { API_URL } from '../../api/config';
 
@@ -15,25 +15,37 @@ const RegisterStudent = ({ navigation }) => {
 
   const handleRegister = async () => {
     try {
-      const userCredential = await auth().createUserWithEmailAndPassword(email, password);
-      const user = userCredential.user;
-      const idToken = await user.getIdToken();
+        console.log("Iniciando registro de estudiante...");
 
-      const response = await fetch(`${API_URL}/api/users`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({
-          uid: user.uid,
-          name,
-          email,
-          role: "Estudiante",
-        }),
-      });
+        // Validar que todos los campos sean obligatorios
+        if (!name || !email || !password || lupeLevel === "Seleccionar nivel") {
+            Alert.alert("Error", "Por favor completa todos los campos.");
+            return;
+        }
 
-      const data = await response.json();
+        // Crear usuario en Firebase Authentication
+        const userCredential = await auth().createUserWithEmailAndPassword(email.trim(), password);
+        const user = userCredential.user;
+        const idToken = await user.getIdToken(true);
+
+        console.log(`Usuario estudiante creado en Firebase Auth con UID: ${user.uid}`);
+
+        // Enviar datos al backend
+        const response = await fetch(`${API_URL}/api/auth/register/student`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${idToken}`,
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                role: "Estudiante",
+                lupeLevel  
+            }),
+        });
+
+        const data = await response.json();
       Alert.alert("Registro exitoso", "Tu cuenta ha sido creada.");
       navigation.navigate('Login');
 
@@ -42,9 +54,8 @@ const RegisterStudent = ({ navigation }) => {
     }
   };
 
+
   return (
-    
-    <SafeAreaView style={styles.container}>
     <View style={styles.container}>
       <View style={styles.topShape} />
 
@@ -129,7 +140,6 @@ const RegisterStudent = ({ navigation }) => {
         </View>
       </Modal>
     </View>
-    </SafeAreaView>
   );
 };
 

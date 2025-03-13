@@ -11,33 +11,41 @@ const RegisterTeacher = ({ navigation }) => {
 
   const handleRegister = async () => {
     try {
-      const userCredential = await auth().createUserWithEmailAndPassword(email, password);
-      const user = userCredential.user;
+        console.log("Iniciando registro de docente...");
 
-      const idToken = await user.getIdToken();
+        // Validar que todos los campos sean obligatorios
+        if (!name || !email || !password) {
+            Alert.alert("Error", "Por favor completa todos los campos.");
+            return;
+        }
 
-      const response = await fetch(`${API_URL}/api/users`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({
-          uid: user.uid,
-          name,
-          email,
-          role: "Profesor",
-        }),
-      });
+        // Crear usuario en Firebase Authentication
+        const userCredential = await auth().createUserWithEmailAndPassword(email.trim(), password);
+        const user = userCredential.user;
+        const idToken = await user.getIdToken(true);
 
-      const data = await response.json();
+        console.log(`Usuario docente creado en Firebase Auth con UID: ${user.uid}`);
 
-      Alert.alert('Registro exitoso', 'Tu cuenta ha sido creada.');
+        // Enviar datos al backend
+        const response = await fetch(`${API_URL}/api/auth/register/teacher`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${idToken}`,
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                role: "Docente",
+            }),
+        });
+
+        const data = await response.json();
+      Alert.alert("Registro exitoso", "Tu cuenta ha sido creada.");
       navigation.navigate('Login');
 
     } catch (error) {
-      console.error('Error en el registro:', error.message);
-      setErrorMessage(error.message);
+      console.error("Error en el registro:", error);
     }
   };
 
