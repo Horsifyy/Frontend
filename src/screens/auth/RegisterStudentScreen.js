@@ -1,9 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, FlatList, StyleSheet, Alert } from 'react-native';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  FlatList,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 import auth from '@react-native-firebase/auth';
-import { API_URL } from '../../api/config';
+import {API_URL} from '../../api/config';
 
-const RegisterStudent = ({ navigation }) => {
+const RegisterStudent = ({navigation}) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,45 +24,48 @@ const RegisterStudent = ({ navigation }) => {
 
   const handleRegister = async () => {
     try {
-        console.log("Iniciando registro de estudiante...");
+      console.log('Iniciando registro de estudiante...');
 
-        // Validar que todos los campos sean obligatorios
-        if (!name || !email || !password || lupeLevel === "Seleccionar nivel") {
-            Alert.alert("Error", "Por favor completa todos los campos.");
-            return;
-        }
+      // Validar que todos los campos sean obligatorios
+      if (!name || !email || !password || lupeLevel === 'Seleccionar nivel') {
+        Alert.alert('Error', 'Por favor completa todos los campos.');
+        return;
+      }
 
-        // Crear usuario en Firebase Authentication
-        const userCredential = await auth().createUserWithEmailAndPassword(email.trim(), password);
-        const user = userCredential.user;
-        const idToken = await user.getIdToken(true);
+      // Crear usuario en Firebase Authentication
+      const userCredential = await auth().createUserWithEmailAndPassword(
+        email.trim(),
+        password,
+      );
+      const user = userCredential.user;
+      const idToken = await user.getIdToken(true);
 
-        console.log(`Usuario estudiante creado en Firebase Auth con UID: ${user.uid}`);
+      console.log(
+        `Usuario estudiante creado en Firebase Auth con UID: ${user.uid}`,
+      );
 
-        // Enviar datos al backend
-        const response = await fetch(`${API_URL}/api/auth/register/student`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${idToken}`,
-            },
-            body: JSON.stringify({
-                name,
-                email,
-                role: "Estudiante",
-                lupeLevel  
-            }),
-        });
+      // Enviar datos al backend
+      const response = await fetch(`${API_URL}/api/auth/register/student`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          role: 'Estudiante',
+          lupeLevel,
+        }),
+      });
 
-        const data = await response.json();
-      Alert.alert("Registro exitoso", "Tu cuenta ha sido creada.");
+      const data = await response.json();
+      Alert.alert('Registro exitoso', 'Tu cuenta ha sido creada.');
       navigation.navigate('Login');
-
     } catch (error) {
-      console.error("Error en el registro:", error);
+      console.error('Error en el registro:', error);
     }
   };
-
 
   return (
     <View style={styles.container}>
@@ -98,15 +110,18 @@ const RegisterStudent = ({ navigation }) => {
           <Text style={styles.inputLabel}>Nivel método LUPE?</Text>
           <TouchableOpacity
             style={styles.input}
-            onPress={() => setModalVisible(true)}
-          >
+            onPress={() => setModalVisible(true)}>
             <Text style={styles.dropdownText}>{lupeLevel}</Text>
           </TouchableOpacity>
         </View>
 
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
 
-        <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+        <TouchableOpacity
+          style={styles.registerButton}
+          onPress={handleRegister}>
           <Text style={styles.buttonText}>Crear cuenta</Text>
         </TouchableOpacity>
       </View>
@@ -117,23 +132,21 @@ const RegisterStudent = ({ navigation }) => {
           <View style={styles.modalContent}>
             <FlatList
               data={levels}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
+              keyExtractor={item => item}
+              renderItem={({item}) => (
                 <TouchableOpacity
                   style={styles.modalItem}
                   onPress={() => {
                     setLupeLevel(item);
                     setModalVisible(false);
-                  }}
-                >
+                  }}>
                   <Text style={styles.modalText}>{item}</Text>
                 </TouchableOpacity>
               )}
             />
             <TouchableOpacity
               style={styles.closeButton}
-              onPress={() => setModalVisible(false)}
-            >
+              onPress={() => setModalVisible(false)}>
               <Text style={styles.closeButtonText}>Cancelar</Text>
             </TouchableOpacity>
           </View>

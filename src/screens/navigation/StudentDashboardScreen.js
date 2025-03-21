@@ -1,6 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  Platform,
+} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const StudentDashboard = () => {
@@ -40,22 +48,21 @@ const StudentDashboard = () => {
 
       <View style={styles.cardsContainer}>
         <View style={styles.row}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.card, styles.performanceCard]}
             onPress={navigateToPerformance}
-            activeOpacity={0.8}
-          >
-            <View style={[styles.iconContainer, styles.performanceIconContainer]}>
+            activeOpacity={0.8}>
+            <View
+              style={[styles.iconContainer, styles.performanceIconContainer]}>
               <Icon name="fire" size={30} color="#fff" />
             </View>
             <Text style={styles.scoreText}>{userData.performanceScore}</Text>
             <Text style={styles.cardLabel}>Desempeño</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.card, styles.rewardsCard]}
             onPress={navigateToRewards}
-            activeOpacity={0.8}
-          >
+            activeOpacity={0.8}>
             <View style={[styles.iconContainer, styles.rewardsIconContainer]}>
               <Icon name="target" size={30} color="#fff" />
             </View>
@@ -63,11 +70,10 @@ const StudentDashboard = () => {
             <Text style={styles.cardTitle}>y beneficios</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.card, styles.scheduleCard, styles.fullWidthCard]}
           onPress={navigateToSchedule}
-          activeOpacity={0.8}
-        >
+          activeOpacity={0.8}>
           <View style={[styles.iconContainer, styles.scheduleIconContainer]}>
             <Icon name="calendar" size={30} color="#fff" />
           </View>
@@ -79,16 +85,10 @@ const StudentDashboard = () => {
       </View>
 
       <View style={styles.navbar}>
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={navigateToHome}
-        >
+        <TouchableOpacity style={styles.navItem} onPress={navigateToHome}>
           <Icon name="home" size={28} color="#666" />
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.navItem}
-          onPress={navigateToProfile}
-        >
+        <TouchableOpacity style={styles.navItem} onPress={navigateToProfile}>
           <Icon name="account" size={28} color="#666" />
         </TouchableOpacity>
       </View>
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },

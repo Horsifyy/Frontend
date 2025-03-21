@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
+import React, {useEffect} from 'react';
+import {View, Text, StyleSheet, SafeAreaView, StatusBar} from 'react-native';
 
-const StudentHome = ({ points = 578, navigation}) => {
-
+const StudentHome = ({points = 578, navigation}) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigation.navigate('StudentDashboard');

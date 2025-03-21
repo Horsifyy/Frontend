@@ -1,79 +1,91 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 import auth from '@react-native-firebase/auth';
-import { API_URL } from '../../api/config';
+import {API_URL} from '../../api/config';
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userType, setUserType] = useState('Estudiante'); // Estado para la selección de usuario
   const [errorMessage, setErrorMessage] = useState('');
 
-  const isValidEmail = (email) => {
+  const isValidEmail = email => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
   const handleLogin = async () => {
     try {
       if (!email || !isValidEmail(email)) {
-        Alert.alert("Error", "Por favor ingresa un email válido.");
+        Alert.alert('Error', 'Por favor ingresa un email válido.');
         return;
       }
-  
+
       if (!password) {
-        Alert.alert("Error", "Por favor ingresa tu contraseña.");
+        Alert.alert('Error', 'Por favor ingresa tu contraseña.');
         return;
       }
-  
-      setErrorMessage(""); // Limpiar cualquier error previo
-      
+
+      setErrorMessage(''); // Limpiar cualquier error previo
+
       // Iniciar sesión en Firebase
-      const userCredential = await auth().signInWithEmailAndPassword(email.trim(), password);
+      const userCredential = await auth().signInWithEmailAndPassword(
+        email.trim(),
+        password,
+      );
       const user = userCredential.user;
       const idToken = await user.getIdToken(true);
-  
-      console.log(`Iniciando sesión con email: ${email}, tipo de usuario seleccionado: ${userType}`);
-  
+
+      console.log(
+        `Iniciando sesión con email: ${email}, tipo de usuario seleccionado: ${userType}`,
+      );
+
       // Estructura de petición mejorada: token solo en el body
       const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json"
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          idToken, 
-          expectedRole: userType  // El backend debe validar este rol
+        body: JSON.stringify({
+          idToken,
+          expectedRole: userType, // El backend debe validar este rol
         }),
       });
-  
+
       const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data.error || "Error al iniciar sesión");
+        throw new Error(data.error || 'Error al iniciar sesión');
       }
-  
+
       // Inicio de sesión exitoso - el backend ya verificó que el rol coincide
-      console.log("Inicio de sesión exitoso:", data);
-      
+      console.log('Inicio de sesión exitoso:', data);
+
       // Navegar a la pantalla correspondiente
-      navigation.replace(userType === 'Estudiante' ? 'StudentHome' : 'TeacherHome');
-      
+      navigation.replace(
+        userType === 'Estudiante' ? 'StudentHome' : 'TeacherHome',
+      );
     } catch (error) {
-      console.error("Error en el inicio de sesión:", error);
-      
+      console.error('Error en el inicio de sesión:', error);
+
       // Manejar errores específicos de Firebase
       if (error.code === 'auth/user-not-found') {
-        setErrorMessage("No existe una cuenta con este email.");
+        setErrorMessage('No existe una cuenta con este email.');
       } else if (error.code === 'auth/wrong-password') {
-        setErrorMessage("Contraseña incorrecta.");
+        setErrorMessage('Contraseña incorrecta.');
       } else if (error.code === 'auth/too-many-requests') {
-        setErrorMessage("Demasiados intentos fallidos. Intenta más tarde.");
+        setErrorMessage('Demasiados intentos fallidos. Intenta más tarde.');
       } else {
-        setErrorMessage(error.message || "Error al iniciar sesión");
+        setErrorMessage(error.message || 'Error al iniciar sesión');
       }
     }
   };
-
 
   return (
     <View style={styles.container}>
@@ -84,18 +96,30 @@ const LoginScreen = ({ navigation }) => {
 
         <View style={styles.userTypeContainer}>
           <TouchableOpacity
-            style={[styles.userTypeButton, userType === 'Estudiante' && styles.selectedUserType]}
-            onPress={() => setUserType('Estudiante')}
-          >
-            <Text style={[styles.userTypeText, userType === 'Estudiante' && styles.selectedText]}>
+            style={[
+              styles.userTypeButton,
+              userType === 'Estudiante' && styles.selectedUserType,
+            ]}
+            onPress={() => setUserType('Estudiante')}>
+            <Text
+              style={[
+                styles.userTypeText,
+                userType === 'Estudiante' && styles.selectedText,
+              ]}>
               Estudiante
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.userTypeButton, userType === 'Docente' && styles.selectedUserType]}
-            onPress={() => setUserType('Docente')}
-          >
-            <Text style={[styles.userTypeText, userType === 'Docente' && styles.selectedText]}>
+            style={[
+              styles.userTypeButton,
+              userType === 'Docente' && styles.selectedUserType,
+            ]}
+            onPress={() => setUserType('Docente')}>
+            <Text
+              style={[
+                styles.userTypeText,
+                userType === 'Docente' && styles.selectedText,
+              ]}>
               Docente
             </Text>
           </TouchableOpacity>
@@ -111,7 +135,6 @@ const LoginScreen = ({ navigation }) => {
             autoCapitalize="none"
             keyboardType="email-address"
           />
-
         </View>
 
         <View style={styles.inputContainer}>
@@ -126,7 +149,9 @@ const LoginScreen = ({ navigation }) => {
           />
         </View>
 
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
 
         <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
           <Text style={styles.forgotPassword}>¿Olvidaste tu contraseña?</Text>
@@ -136,9 +161,13 @@ const LoginScreen = ({ navigation }) => {
           <Text style={styles.buttonText}>Ingresar</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.registerButton} onPress={() =>
-          navigation.navigate(userType === 'Estudiante' ? 'RegisterStudent' : 'RegisterTeacher')
-        }>
+        <TouchableOpacity
+          style={styles.registerButton}
+          onPress={() =>
+            navigation.navigate(
+              userType === 'Estudiante' ? 'RegisterStudent' : 'RegisterTeacher',
+            )
+          }>
           <Text style={styles.buttonText}>Registrarse</Text>
         </TouchableOpacity>
       </View>

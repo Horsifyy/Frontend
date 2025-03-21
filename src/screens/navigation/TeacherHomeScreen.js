@@ -1,16 +1,80 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import auth from '@react-native-firebase/auth';
+import {API_URL} from '../../api/config';
 
-const TeacherHome = ({ navigation, students = [
-  { id: 1, name: 'Alumno 1' },
-  { id: 2, name: 'Alumno 2' },
-  { id: 3, name: 'Alumno 3' },
-] }) => {
+const TeacherHome = ({navigation}) => {
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const navigateToTeacherDashboard = (student) => {
-    navigation.navigate('TeacherDashboard', { student });
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+
+      // Obtener token del usuario actual
+      const currentUser = auth().currentUser;
+      if (!currentUser) {
+        throw new Error('No hay usuario autenticado');
+      }
+
+      const idToken = await currentUser.getIdToken(true);
+
+      const response = await fetch(`${API_URL}/api/auth/students`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al obtener estudiantes');
+      }
+      data.students.forEach(student => {
+        if (
+          !student.lupeLevel ||
+          !['Amarillo', 'Azul', 'Rojo'].includes(student.lupeLevel)
+        ) {
+          console.log(`Estudiante ${student.name} sin nivel LUPE válido`);
+        }
+      });
+      setStudents(data.students);
+    } catch (error) {
+      console.error('Error al cargar estudiantes:', error);
+      Alert.alert(
+        'Error',
+        'No se pudieron cargar los estudiantes. Por favor intenta nuevamente.',
+      );
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const navigateToTeacherDashboard = student => {
+    console.log(
+      'Navegando al dashboard con estudiante:',
+      JSON.stringify(student),
+    );
+    navigation.navigate('TeacherDashboard', {student});
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#106e7e" />
@@ -19,14 +83,15 @@ const TeacherHome = ({ navigation, students = [
       </View>
       <View style={styles.contentContainer}>
         <Text style={styles.sectionTitle}>Alumnos inscritos</Text>
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {students.map((student) => (
-            <TouchableOpacity 
-              key={student.id} 
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}>
+          {students.map(student => (
+            <TouchableOpacity
+              key={student.id}
               style={styles.studentCard}
               onPress={() => navigateToTeacherDashboard(student)}
-              activeOpacity={0.7}
-            >
+              activeOpacity={0.7}>
               <View style={styles.studentAvatar} />
               <Text style={styles.studentName}>{student.name}</Text>
             </TouchableOpacity>

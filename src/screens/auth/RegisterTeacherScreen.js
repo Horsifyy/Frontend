@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
-import { View, TextInput, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, {useState} from 'react';
+import {
+  View,
+  TextInput,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 import auth from '@react-native-firebase/auth';
-import { API_URL } from '../../api/config';
+import {API_URL} from '../../api/config';
 
-const RegisterTeacher = ({ navigation }) => {
+const RegisterTeacher = ({navigation}) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -11,41 +18,45 @@ const RegisterTeacher = ({ navigation }) => {
 
   const handleRegister = async () => {
     try {
-        console.log("Iniciando registro de docente...");
+      console.log('Iniciando registro de docente...');
 
-        // Validar que todos los campos sean obligatorios
-        if (!name || !email || !password) {
-            Alert.alert("Error", "Por favor completa todos los campos.");
-            return;
-        }
+      // Validar que todos los campos sean obligatorios
+      if (!name || !email || !password) {
+        Alert.alert('Error', 'Por favor completa todos los campos.');
+        return;
+      }
 
-        // Crear usuario en Firebase Authentication
-        const userCredential = await auth().createUserWithEmailAndPassword(email.trim(), password);
-        const user = userCredential.user;
-        const idToken = await user.getIdToken(true);
+      // Crear usuario en Firebase Authentication
+      const userCredential = await auth().createUserWithEmailAndPassword(
+        email.trim(),
+        password,
+      );
+      const user = userCredential.user;
+      const idToken = await user.getIdToken(true);
 
-        console.log(`Usuario docente creado en Firebase Auth con UID: ${user.uid}`);
+      console.log(
+        `Usuario docente creado en Firebase Auth con UID: ${user.uid}`,
+      );
 
-        // Enviar datos al backend
-        const response = await fetch(`${API_URL}/api/auth/register/teacher`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${idToken}`,
-            },
-            body: JSON.stringify({
-                name,
-                email,
-                role: "Docente",
-            }),
-        });
+      // Enviar datos al backend
+      const response = await fetch(`${API_URL}/api/auth/register/teacher`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          role: 'Docente',
+        }),
+      });
 
-        const data = await response.json();
-      Alert.alert("Registro exitoso", "Tu cuenta ha sido creada.");
+      const data = await response.json();
+      Alert.alert('Registro exitoso', 'Tu cuenta ha sido creada.');
       navigation.navigate('Login');
-
     } catch (error) {
-      console.error("Error en el registro:", error);
+      console.error('Error en el registro:', error);
     }
   };
 
@@ -88,9 +99,13 @@ const RegisterTeacher = ({ navigation }) => {
           />
         </View>
 
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
 
-        <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+        <TouchableOpacity
+          style={styles.registerButton}
+          onPress={handleRegister}>
           <Text style={styles.buttonText}>Crear cuenta</Text>
         </TouchableOpacity>
       </View>

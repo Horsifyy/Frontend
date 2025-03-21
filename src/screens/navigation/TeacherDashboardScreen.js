@@ -1,20 +1,52 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, StatusBar } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  StatusBar,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const TeacherDashboard = ({ navigation }) => {
+const TeacherDashboard = ({route, navigation}) => {
+  const {student} = route.params;
 
   const options = [
-    { id: 1, title: 'Editar nivel del estudiante', color: '#c8eff5', textColor: '#333' },
-    { id: 2, title: 'Progreso del estudiante', color: '#c8eff5', textColor: '#333' },
-    { id: 3, title: 'Registrar nuevo desempeño', color: '#c8eff5', textColor: '#333', screen: 'RegisterEvaluation' },
-    { id: 4, title: 'Calendario de clases', color: '#e6e6e6', textColor: '#333' },
+    {
+      id: 1,
+      title: 'Editar nivel del estudiante',
+      color: '#c8eff5',
+      textColor: '#333',
+    },
+    {
+      id: 2,
+      title: 'Progreso del estudiante',
+      color: '#c8eff5',
+      textColor: '#333',
+    },
+    {
+      id: 3,
+      title: 'Registrar nuevo desempeño',
+      color: '#c8eff5',
+      textColor: '#333',
+      screen: 'RegisterEvaluation',
+    },
+    {id: 4, title: 'Calendario de clases', color: '#e6e6e6', textColor: '#333'},
   ];
 
-  const handleNavigation = (screenName) => {
-    if (screenName) {
-      navigation.navigate(screenName);
-    }
+  const handleNavigateToEvaluation = () => {
+    const studentWithLevel = {
+      id: student.id,
+      name: student.name,
+      lupeLevel: student.lupeLevel, // Proporciona un valor por defecto si no existe
+    };
+
+    console.log(
+      'Navegando a registro de evaluación con:',
+      JSON.stringify(studentWithLevel),
+    );
+    navigation.navigate('RegisterEvaluation', {student: studentWithLevel});
   };
 
   return (
@@ -30,23 +62,23 @@ const TeacherDashboard = ({ navigation }) => {
         <Text style={styles.sectionTitle}>Opciones disponibles:</Text>
 
         <View style={styles.optionsContainer}>
-          {options.map((option) => (
-            <TouchableOpacity 
-              key={option.id} 
-              style={[styles.optionButton, { backgroundColor: option.color }]}
-              onPress={() => handleNavigation(option.screen)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.optionText, { color: option.textColor }]}>{option.title}</Text>
+          {options.map(option => (
+            <TouchableOpacity
+              key={option.id}
+              style={[styles.optionButton, {backgroundColor: option.color}]}
+              onPress={() => handleNavigateToEvaluation(option.screen)}
+              activeOpacity={0.7}>
+              <Text style={[styles.optionText, {color: option.textColor}]}>
+                {option.title}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
       <View style={styles.bottomNavBar}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.navButton}
-          onPress={() => navigation.navigate('TeacherHome')}
-        >
+          onPress={() => navigation.navigate('TeacherHome')}>
           <Icon name="home" size={24} color="#555" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.navButton}>
@@ -137,4 +169,3 @@ const styles = StyleSheet.create({
 });
 
 export default TeacherDashboard;
-

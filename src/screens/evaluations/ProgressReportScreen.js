@@ -1,9 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  ScrollView,
+} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { BarChart } from 'react-native-chart-kit';
-import { Dimensions } from 'react-native';
+import {BarChart} from 'react-native-chart-kit';
+import {Dimensions} from 'react-native';
 
 const ProgressReport = () => {
   const navigation = useNavigation();
@@ -17,7 +25,12 @@ const ProgressReport = () => {
   };
 
   const chartData = {
-    labels: ['Control del caballo', 'Postura', 'Movimientos corporales', 'Control de la respiración'],
+    labels: [
+      'Control del caballo',
+      'Postura',
+      'Movimientos corporales',
+      'Control de la respiración',
+    ],
     datasets: [
       {
         data: [20, 19, 14, 18],
@@ -26,17 +39,17 @@ const ProgressReport = () => {
           (opacity = 1) => '#4abebd',
           (opacity = 1) => '#4abebd',
           (opacity = 1) => '#4abebd',
-        ]
-      }
-    ]
+        ],
+      },
+    ],
   };
 
   const progressCategories = [
-    { name: 'Sobresaliente', color: '#4abebd' },
-    { name: 'Logrado', color: '#4cd97b' },
-    { name: 'En Proceso', color: '#f7e986' },
-    { name: 'Principiante', color: '#f7bb6c' },
-    { name: 'No hay progreso', color: '#d9d9d9' },
+    {name: 'Sobresaliente', color: '#4abebd'},
+    {name: 'Logrado', color: '#4cd97b'},
+    {name: 'En Proceso', color: '#f7e986'},
+    {name: 'Principiante', color: '#f7bb6c'},
+    {name: 'No hay progreso', color: '#d9d9d9'},
   ];
 
   const chartConfig = {
@@ -84,14 +97,18 @@ const ProgressReport = () => {
           </View>
           <View style={styles.profileImageContainer}>
             <View style={styles.profileImagePlaceholder}>
-              <Text style={styles.profileInitial}>{userData.name.charAt(0)}</Text>
+              <Text style={styles.profileInitial}>
+                {userData.name.charAt(0)}
+              </Text>
             </View>
           </View>
         </View>
         <View style={styles.categoriesContainer}>
           {progressCategories.map((category, index) => (
             <View key={index} style={styles.categoryItem}>
-              <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
+              <View
+                style={[styles.categoryDot, {backgroundColor: category.color}]}
+              />
               <Text style={styles.categoryText}>{category.name}</Text>
             </View>
           ))}
@@ -116,7 +133,9 @@ const ProgressReport = () => {
             <Text style={styles.customLabel}>Control del{'\n'}caballo</Text>
             <Text style={styles.customLabel}>Postura</Text>
             <Text style={styles.customLabel}>Movimientos{'\n'}corporales</Text>
-            <Text style={styles.customLabel}>Control de la{'\n'}respiración</Text>
+            <Text style={styles.customLabel}>
+              Control de la{'\n'}respiración
+            </Text>
           </View>
         </View>
         <View style={styles.classImageContainer}>
@@ -125,24 +144,19 @@ const ProgressReport = () => {
         <TouchableOpacity
           style={styles.previousEvaluationsButton}
           onPress={navigateToPreviousEvaluations}
-          activeOpacity={0.8}
-        >
+          activeOpacity={0.8}>
           <Icon name="clipboard-text-outline" size={24} color="#fff" />
-          <Text style={styles.previousEvaluationsText}>Evaluaciones previas</Text>
+          <Text style={styles.previousEvaluationsText}>
+            Evaluaciones previas
+          </Text>
           <Icon name="chevron-right" size={24} color="#fff" />
         </TouchableOpacity>
       </ScrollView>
       <View style={styles.navbar}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={navigateToHome}
-        >
+        <TouchableOpacity style={styles.navItem} onPress={navigateToHome}>
           <Icon name="home" size={28} color="#666" />
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={navigateToProfile}
-        >
+        <TouchableOpacity style={styles.navItem} onPress={navigateToProfile}>
           <Icon name="account" size={28} color="#666" />
         </TouchableOpacity>
       </View>
