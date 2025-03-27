@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,13 +10,13 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {useRoute, useNavigation} from '@react-navigation/native';
-import {API_URL} from '../../api/config';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { API_URL } from '../../api/config';
 
 const GetMetrics = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const {student} = route.params || {};
+  const { student } = route.params || {};
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,22 +24,23 @@ const GetMetrics = () => {
 
   // Datos por defecto y configuración de la visualización
   const progressZones = [
-    {name: 'Sobresaliente', color: '#b5efe4', dotColor: '#21c5c5'},
-    {name: 'Logrado', color: '#c6efb5', dotColor: '#60c938'},
-    {name: 'En Proceso', color: '#efe9b5', dotColor: '#eada5d'},
-    {name: 'Principiante', color: '#fae8c8', dotColor: '#f5a742'},
-    {name: 'No hay progreso', color: '#e9e9e9', dotColor: '#d1d1d1'},
+    { name: 'Sobresaliente', color: '#b5efe4', dotColor: '#21c5c5' },
+    { name: 'Logrado', color: '#c6efb5', dotColor: '#60c938' },
+    { name: 'En Proceso', color: '#efe9b5', dotColor: '#eada5d' },
+    { name: 'Principiante', color: '#fae8c8', dotColor: '#f5a742' },
+    { name: 'No hay progreso', color: '#e9e9e9', dotColor: '#d1d1d1' },
   ];
 
+  // Función para obtener métricas del backend
   const fetchStudentMetrics = async () => {
     try {
       setLoading(true);
 
       // Llamada a la API para obtener las métricas del estudiante
-      const response = await fetch(`${API_URL}/students/${student.id}/metrics`);
+      const response = await fetch(`${API_URL}/api/evaluations/students/${student.id}/metrics`);
 
       if (!response.ok) {
-        throw new Error(`Error al obtener métricas: ${response.status}`);
+        throw new Error('Error al obtener métricas');
       }
 
       const data = await response.json();
@@ -60,9 +61,9 @@ const GetMetrics = () => {
         level: student?.lupeLevel || 'No asignado',
         time: '0.00',
         progressData: [
-          {id: 1, name: 'Control del caballo', score: 0, color: '#4db6ce'},
-          {id: 2, name: 'Postura', score: 0, color: '#4db6ce'},
-          {id: 3, name: 'Movimientos corporales', score: 0, color: '#4db6ce'},
+          { id: 1, name: 'Control del caballo', score: 0, color: '#4db6ce' },
+          { id: 2, name: 'Postura', score: 0, color: '#4db6ce' },
+          { id: 3, name: 'Movimientos corporales', score: 0, color: '#4db6ce' },
           {
             id: 4,
             name: 'Control de la respiración',
@@ -80,10 +81,10 @@ const GetMetrics = () => {
   const formatProgressData = (metrics = []) => {
     if (!metrics || metrics.length === 0) {
       return [
-        {id: 1, name: 'Control del caballo', score: 0, color: '#4db6ce'},
-        {id: 2, name: 'Postura', score: 0, color: '#4db6ce'},
-        {id: 3, name: 'Movimientos corporales', score: 0, color: '#4db6ce'},
-        {id: 4, name: 'Control de la respiración', score: 0, color: '#4db6ce'},
+        { id: 1, name: 'Control del caballo', score: 0, color: '#4db6ce' },
+        { id: 2, name: 'Postura', score: 0, color: '#4db6ce' },
+        { id: 3, name: 'Movimientos corporales', score: 0, color: '#4db6ce' },
+        { id: 4, name: 'Control de la respiración', score: 0, color: '#4db6ce' },
       ];
     }
 
@@ -139,7 +140,7 @@ const GetMetrics = () => {
   }
 
   // Si tenemos datos, mostrar la pantalla normal
-  const {studentName, level, time, progressData} = metricsData;
+  const { studentName, level, time, progressData } = metricsData;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -162,7 +163,7 @@ const GetMetrics = () => {
         {progressZones.map(zone => (
           <View key={zone.name} style={styles.legendItem}>
             <View
-              style={[styles.legendDot, {backgroundColor: zone.dotColor}]}
+              style={[styles.legendDot, { backgroundColor: zone.dotColor }]}
             />
             <Text style={styles.legendText}>{zone.name}</Text>
           </View>
@@ -332,18 +333,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 18,
-  },
-  studentImageContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    overflow: 'hidden',
-    backgroundColor: '#f0f0f0',
-  },
-  studentImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
   },
   legendContainer: {
     flexDirection: 'row',

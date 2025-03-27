@@ -193,20 +193,31 @@ const RegisterEvaluation = () => {
       console.log('Enviando datos:', JSON.stringify(dataToSend));
   
       // Add error handling for the response
-      const response = await fetch(`${API_URL}/api/evaluations/registerEvaluation`, {
+      const response = await fetch(`${API_URL}/api/evaluations`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(dataToSend),
       });
-  
+
       // Check response type before parsing
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.indexOf("application/json") !== -1) {
         const result = await response.json();
-        
-        if (response.ok) {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        if (response.ok) {      
           Alert.alert('Éxito', 'Evaluación registrada correctamente', [
-            {text: 'OK', onPress: () => navigation.navigate('GetMetricsScreen')},
+            {
+              text: 'OK',
+              onPress: () => {
+                // Navegar a la pantalla de métricas con los datos del estudiante
+                navigation.navigate('GetMetrics', {
+                  studentId: student.id,  // Pasar el  ID del estudiante
+                  studentName: student.name,  // Pasar el nombre del estudiante
+                });
+              },
+            },
           ]);
         } else {
           Alert.alert('Error', result.error || 'Error al registrar la evaluación');
