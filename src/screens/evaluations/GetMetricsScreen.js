@@ -1,7 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Dimensions, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { BarChart } from 'react-native-chart-kit';
-import { useRoute } from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
+import {BarChart} from 'react-native-chart-kit';
+import {useRoute, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const screenWidth = Dimensions.get('window').width;
@@ -9,7 +17,8 @@ const screenWidth = Dimensions.get('window').width;
 const GetMetricsScreen = () => {
   const [chartData, setChartData] = useState(null);
   const route = useRoute();
-  const { studentInfo, exercises, ratings } = route.params; // Datos recibidos de la pantalla anterior
+  const navigation = useNavigation();
+  const {studentInfo, exercises, ratings, averageScore} = route.params; // Datos recibidos de la pantalla anterior
 
   useEffect(() => {
     if (ratings && exercises) {
@@ -21,22 +30,20 @@ const GetMetricsScreen = () => {
     // Extraemos las métricas y sus valores
     const metricsLabels = Object.keys(ratings);
     const metricsValues = Object.values(ratings).map(val => parseInt(val, 10));
-    
-    // Calculamos el promedio
-    const average = metricsValues.reduce((acc, val) => acc + val, 0) / metricsValues.length;
 
     setChartData({
       labels: metricsLabels, // Las métricas serán las etiquetas del gráfico
-      datasets: [{
-        data: metricsValues, // Los valores de calificación serán los datos
-        color: (opacity = 1) => `rgba(64, 205, 224, ${opacity})`,
-      }],
-      average,
+      datasets: [
+        {
+          data: metricsValues, // Los valores de calificación serán los datos
+          color: (opacity = 1) => `rgba(64, 205, 224, ${opacity})`,
+        },
+      ],
     });
   };
 
   // Colores para los ejercicios (visual)
-  const getExerciseColor = (index) => {
+  const getExerciseColor = index => {
     const colors = ['#40CDE0', '#4CAF50', '#FFC107', '#FF9800', '#CCCCCC'];
     return colors[index % colors.length];
   };
@@ -47,33 +54,38 @@ const GetMetricsScreen = () => {
         {/* Header con información del estudiante */}
         <View style={styles.headerContainer}>
           <View style={styles.studentInfoContainer}>
-            <Text style={styles.studentName}>{studentInfo?.name || 'Estudiante'}</Text>
+            <Text style={styles.studentName}>
+              {studentInfo?.name || 'Estudiante'}
+            </Text>
             <View style={styles.levelContainer}>
               <Text style={styles.levelLabel}>Nivel: </Text>
               <Text style={styles.levelValue}>{studentInfo?.lupeLevel}</Text>
             </View>
           </View>
-          
+
           <View style={styles.averageBadge}>
             <Text style={styles.averageValue}>
-              {chartData ? chartData.average.toFixed(2) : '0.00'}
-            </Text>
+            {averageScore}</Text>
           </View>
           <View style={styles.profileImageContainer}>
-            <Image 
-              style={styles.profileImage} 
-            />
+            <Image style={styles.profileImage} />
           </View>
         </View>
 
         {/* Ejercicios realizados */}
         <View style={styles.exercisesContainer}>
-          {exercises && exercises.map((exercise, index) => (
-            <View key={index} style={styles.exerciseItem}>
-              <View style={[styles.exerciseDot, { backgroundColor: getExerciseColor(index) }]} />
-              <Text style={styles.exerciseText}>{exercise}</Text>
-            </View>
-          ))}
+          {exercises &&
+            exercises.map((exercise, index) => (
+              <View key={index} style={styles.exerciseItem}>
+                <View
+                  style={[
+                    styles.exerciseDot,
+                    {backgroundColor: getExerciseColor(index)},
+                  ]}
+                />
+                <Text style={styles.exerciseText}>{exercise}</Text>
+              </View>
+            ))}
         </View>
 
         {/* Título de visualización */}
@@ -86,9 +98,11 @@ const GetMetricsScreen = () => {
               data={{
                 labels: chartData.labels.map(label => {
                   // Acortamos los nombres de las métricas para que quepan en el gráfico
-                  return label.length > 20 ? label.substring(0, 17) + '...' : label;
+                  return label.length > 20
+                    ? label.substring(0, 17) + '...'
+                    : label;
                 }),
-                datasets: [{ data: chartData.datasets[0].data }],
+                datasets: [{data: chartData.datasets[0].data}],
               }}
               width={screenWidth - 40}
               height={350}
@@ -115,10 +129,46 @@ const GetMetricsScreen = () => {
             />
             {/* Capas de colores para zonas */}
             <View style={styles.chartOverlay}>
-              <View style={[styles.chartZone, { backgroundColor: 'rgba(64, 205, 224, 0.15)', top: 0, height: '25%' }]} />
-              <View style={[styles.chartZone, { backgroundColor: 'rgba(76, 175, 80, 0.15)', top: '25%', height: '25%' }]} />
-              <View style={[styles.chartZone, { backgroundColor: 'rgba(255, 193, 7, 0.15)', top: '50%', height: '25%' }]} />
-              <View style={[styles.chartZone, { backgroundColor: 'rgba(255, 152, 0, 0.15)', top: '75%', height: '25%' }]} />
+              <View
+                style={[
+                  styles.chartZone,
+                  {
+                    backgroundColor: 'rgba(64, 205, 224, 0.15)',
+                    top: 0,
+                    height: '25%',
+                  },
+                ]}
+              />
+              <View
+                style={[
+                  styles.chartZone,
+                  {
+                    backgroundColor: 'rgba(76, 175, 80, 0.15)',
+                    top: '25%',
+                    height: '25%',
+                  },
+                ]}
+              />
+              <View
+                style={[
+                  styles.chartZone,
+                  {
+                    backgroundColor: 'rgba(255, 193, 7, 0.15)',
+                    top: '50%',
+                    height: '25%',
+                  },
+                ]}
+              />
+              <View
+                style={[
+                  styles.chartZone,
+                  {
+                    backgroundColor: 'rgba(255, 152, 0, 0.15)',
+                    top: '75%',
+                    height: '25%',
+                  },
+                ]}
+              />
             </View>
           </View>
         ) : (
@@ -133,7 +183,13 @@ const GetMetricsScreen = () => {
         </View>
 
         {/* Botón de evaluaciones previas */}
-        <TouchableOpacity style={styles.previousEvalButton}>
+        <TouchableOpacity
+          style={styles.previousEvalButton}
+          onPress={() => {
+            navigation.navigate('EvaluationHistory', {
+              studentInfo: studentInfo, // envía la info del estudiante
+            });
+          }}>
           <Text style={styles.previousEvalText}>Evaluaciones previas</Text>
         </TouchableOpacity>
       </View>
@@ -236,7 +292,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,

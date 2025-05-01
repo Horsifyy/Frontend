@@ -13,13 +13,12 @@ import {
   Switch,
 } from 'react-native';
 import {useRoute, useNavigation} from '@react-navigation/native';
-import {Picker} from '@react-native-picker/picker';
 import {API_URL} from '../../api/config'; // Asegúrate de que esta ruta sea correcta según tu proyecto
 
 const RegisterEvaluationScreen = () => {
   const {params} = useRoute();
   const navigation = useNavigation();
-  const student = params?.student || {};
+  const student = params?.studentInfo || {};
 
   const [loading, setLoading] = useState(false);
   const [exercises, setExercises] = useState([]);
@@ -144,10 +143,11 @@ const RegisterEvaluationScreen = () => {
               studentInfo: {
                 id: studentInfo.id,
                 name: studentInfo.name,
-                level: studentInfo.lupeLevel, // Asegúrate de que el nivel no sea vacío
+                lupeLevel: studentInfo.lupeLevel, // Asegúrate de que el nivel no sea vacío
               },
               exercises: formData.selectedExercises, // Pasamos los ejercicios
               ratings: formData.ratings, // Pasamos las métricas (calificaciones)
+              averageScore: json.evaluation?.averageScore,
             }),
         },
       ]);

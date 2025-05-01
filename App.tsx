@@ -13,6 +13,7 @@ import RegisterEvaluationScreen from './src/screens/evaluations/RegisterEvaluati
 import GetMetricsScreen from './src/screens/evaluations/GetMetricsScreen';
 import StudentDashboardScreen from './src/screens/navigation/StudentDashboardScreen';
 import ProgressReportScreen from './src/screens/evaluations/ProgressReportScreen';
+import EvaluationHistoryScreen from './src/screens/evaluations/EvaluationHistoryScreen';
 
 const Stack = createStackNavigator();
 
@@ -36,6 +37,7 @@ const App = () => {
         <Stack.Screen name="GetMetrics" component={GetMetricsScreen} />
         <Stack.Screen name="StudentDashboard" component={StudentDashboardScreen} />
         <Stack.Screen name="ProgressReport" component={ProgressReportScreen} />
+        <Stack.Screen name="EvaluationHistory" component={EvaluationHistoryScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

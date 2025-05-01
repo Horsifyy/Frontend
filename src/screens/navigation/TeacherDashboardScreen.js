@@ -24,6 +24,7 @@ const TeacherDashboard = ({route, navigation}) => {
       title: 'Progreso del estudiante',
       color: '#c8eff5',
       textColor: '#333',
+      screen: 'EvaluationHistory',
     },
     {
       id: 3,
@@ -35,19 +36,19 @@ const TeacherDashboard = ({route, navigation}) => {
     {id: 4, title: 'Calendario de clases', color: '#e6e6e6', textColor: '#333'},
   ];
 
-  const handleNavigateToEvaluation = () => {
+  const handleNavigateToEvaluation = (screenName) => {
+    if (!screenName) return;
+  
     const studentWithLevel = {
       id: student.id,
       name: student.name,
-      lupeLevel: student.lupeLevel, // Proporciona un valor por defecto si no existe
+      lupeLevel: student.lupeLevel || '',
+      photoUrl: student.photoUrl || '', // opcional si usas foto
     };
-
-    console.log(
-      'Navegando a registro de evaluación con:',
-      JSON.stringify(studentWithLevel),
-    );
-    navigation.navigate('RegisterEvaluation', {student: studentWithLevel});
+  
+    navigation.navigate(screenName, { studentInfo: studentWithLevel });
   };
+  
 
   return (
     <SafeAreaView style={styles.container}>

@@ -72,7 +72,13 @@ const TeacherHome = ({navigation}) => {
       'Navegando al dashboard con estudiante:',
       JSON.stringify(student),
     );
-    navigation.navigate('TeacherDashboard', {student});
+    navigation.navigate('TeacherDashboard', {
+      student: {
+        id: student.id,
+        name: student.name,
+        lupeLevel: student.lupeLevel, // ← asigna nivel si no viene
+      },
+    });
   };
 
   return (
