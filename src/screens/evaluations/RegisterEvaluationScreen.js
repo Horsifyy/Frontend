@@ -13,6 +13,7 @@ import {
   Switch,
 } from 'react-native';
 import {useRoute, useNavigation} from '@react-navigation/native';
+import {Picker} from '@react-native-picker/picker';
 import {API_URL} from '../../api/config'; // Asegúrate de que esta ruta sea correcta según tu proyecto
 
 const RegisterEvaluationScreen = () => {
@@ -81,7 +82,6 @@ const RegisterEvaluationScreen = () => {
 
   // Revisa la inicialización de las métricas en el estado del frontend
   const changeRating = (label, value) => {
-    if (!/^[1-9]$|^[1-4][0-9]$|^50$/.test(value)) return; // Solo valores entre 1 y 50
     setFormData(fd => ({
       ...fd,
       ratings: {...fd.ratings, [label]: value},
@@ -146,9 +146,9 @@ const RegisterEvaluationScreen = () => {
                 name: studentInfo.name,
                 level: studentInfo.lupeLevel, // Asegúrate de que el nivel no sea vacío
               },
-            exercises: formData.selectedExercises, // Pasamos los ejercicios
-            ratings: formData.ratings, // Pasamos las métricas (calificaciones)
-          }),
+              exercises: formData.selectedExercises, // Pasamos los ejercicios
+              ratings: formData.ratings, // Pasamos las métricas (calificaciones)
+            }),
         },
       ]);
     } catch (e) {
@@ -197,18 +197,34 @@ const RegisterEvaluationScreen = () => {
 
         {/* MÉTRICAS */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Métricas (1-50)</Text>
+          <Text style={styles.sectionTitle}>Métricas (0 - 50)</Text>
+
+          {/* Encabezado de números */}
+          <View style={styles.radioHeader}>
+            {[0, 10, 20, 30, 40, 50].map(val => (
+              <Text key={val} style={styles.radioHeaderText}>
+                {val}
+              </Text>
+            ))}
+          </View>
+
+          {/* Métricas */}
           {metrics.map(label => (
-            <View key={label} style={styles.metricContainer}>
-              <Text style={styles.label}>{label}</Text>
-              <TextInput
-                style={styles.ratingInput}
-                keyboardType="numeric"
-                maxLength={2}
-                value={formData.ratings[label] || ''} // Inicializado como vacío para permitir edición
-                onChangeText={val => changeRating(label, val)} // Cambiar la calificación
-                placeholder="1-50"
-              />
+            <View key={label} style={styles.metricRow}>
+              <Text style={styles.metricLabel}>{label}</Text>
+              <View style={styles.radioGroup}>
+                {[0, 10, 20, 30, 40, 50].map(value => (
+                  <TouchableOpacity
+                    key={value}
+                    style={[
+                      styles.radioCircle,
+                      formData.ratings[label] === `${value}` &&
+                        styles.selectedRadio,
+                    ]}
+                    onPress={() => changeRating(label, `${value}`)}
+                  />
+                ))}
+              </View>
             </View>
           ))}
         </View>
@@ -319,6 +335,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
     width: '80%',
+  },
+  radioHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    marginBottom: 8,
+  },
+  radioHeaderText: {
+    width: 24,
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#555',
+  },
+  metricRow: {
+    marginBottom: 20,
+  },
+  metricLabel: {
+    fontSize: 14,
+    marginBottom: 6,
+    color: '#333',
+  },
+  radioGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+  },
+  radioCircle: {
+    height: 24,
+    width: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#bbb',
+    backgroundColor: 'white',
+  },
+  selectedRadio: {
+    borderColor: '#C71585',
+    backgroundColor: '#C71585',
   },
 });
 
