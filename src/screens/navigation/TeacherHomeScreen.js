@@ -77,6 +77,7 @@ const TeacherHome = ({navigation}) => {
         id: student.id,
         name: student.name,
         lupeLevel: student.lupeLevel, // ← asigna nivel si no viene
+        role: student.role,
       },
     });
   };

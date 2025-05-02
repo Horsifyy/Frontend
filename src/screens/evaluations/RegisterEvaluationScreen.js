@@ -33,6 +33,7 @@ const RegisterEvaluationScreen = () => {
     id: student.id || '',
     name: student.name || 'Estudiante',
     lupeLevel: student.lupeLevel || '',
+    role: student.role,
   };
 
   // Carga los ejercicios y las métricas desde el backend

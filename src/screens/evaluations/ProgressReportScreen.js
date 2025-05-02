@@ -1,325 +1,278 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
+  Dimensions,
+  ActivityIndicator,
+  Alert,
   TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
   ScrollView,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {BarChart} from 'react-native-chart-kit';
-import {Dimensions} from 'react-native';
+import { BarChart } from 'react-native-chart-kit';
+import auth from '@react-native-firebase/auth';
+import { API_URL } from '../../api/config';
 
-const ProgressReport = () => {
-  const navigation = useNavigation();
-  const screenWidth = Dimensions.get('window').width - 40; // Margen total de 40
+const screenWidth = Dimensions.get('window').width;
 
-  // Datos del usuario
-  const userData = {
-    name: 'Carlos Paz',
-    level: 'Amarillo',
-    score: '16,54',
-  };
+const ProgressReportScreen = () => {
+  const [filter, setFilter] = useState('month');
+  const [yearFilter] = useState(new Date().getFullYear());
+  const [levelFilter, setLevelFilter] = useState('Amarillo');
+  const [chartData, setChartData] = useState(null);
+  const [average, setAverage] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [studentInfo, setStudentInfo] = useState(null);
+  const [showHistory, setShowHistory] = useState(false);
 
-  const chartData = {
-    labels: [
-      'Control del caballo',
-      'Postura',
-      'Movimientos corporales',
-      'Control de la respiración',
-    ],
-    datasets: [
-      {
-        data: [20, 19, 14, 18],
-        colors: [
-          (opacity = 1) => '#4abebd',
-          (opacity = 1) => '#4abebd',
-          (opacity = 1) => '#4abebd',
-          (opacity = 1) => '#4abebd',
-        ],
-      },
-    ],
-  };
+  useEffect(() => {
+    const fetchStudentInfoAndHistory = async () => {
+      try {
+        setLoading(true);
+        const currentUser = auth().currentUser;
+        const idToken = await currentUser.getIdToken(true);
 
-  const progressCategories = [
-    {name: 'Sobresaliente', color: '#4abebd'},
-    {name: 'Logrado', color: '#4cd97b'},
-    {name: 'En Proceso', color: '#f7e986'},
-    {name: 'Principiante', color: '#f7bb6c'},
-    {name: 'No hay progreso', color: '#d9d9d9'},
-  ];
+        // Obtener última evaluación (como resumen)
+        const lastEvalResponse = await fetch(`${API_URL}/api/evaluations/last/${currentUser.uid}`, {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
 
-  const chartConfig = {
-    backgroundColor: 'transparent',
-    backgroundGradientFrom: 'white',
-    backgroundGradientTo: 'white',
-    decimalPlaces: 0,
-    color: (opacity = 1) => '#4abebd',
-    labelColor: (opacity = 1) => '#333333',
-    style: {
-      borderRadius: 16,
-    },
-    barPercentage: 0.6,
-    propsForBackgroundLines: {
-      strokeWidth: 0,
-    },
-  };
+        const lastEval = await lastEvalResponse.json();
+        setStudentInfo(lastEval.studentInfo);
+        if (!showHistory) {
+          setAverage(parseFloat(lastEval.averageScore || '0'));
+          const ratings = lastEval.ratings || {};
 
-  const navigateToPreviousEvaluations = () => {
-    console.log('Navegando a Evaluaciones previas');
-  };
+          setChartData({
+            labels: Object.keys(ratings),
+            datasets: [{ data: Object.values(ratings).map(r => parseFloat(r)) }],
+          });
+        }
 
-  const navigateToHome = () => {
-    console.log('Navegando a Home');
-  };
+        // Obtener historial si se requiere
+        if (showHistory) {
+          const currentUser = auth().currentUser;
+          const studentId = currentUser?.uid;
+          const response = await fetch(
+            `${API_URL}/api/evaluations/history/${studentId}?range=${filter}&year=${yearFilter}&level=${levelFilter}`,
+            {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${idToken}`,
+              },
+            }
+          );
+          const data = await response.json();
+          const evaluaciones = Array.isArray(data) ? data : [];
+          const fechas = [];
+          const promedios = [];
+          
+          evaluaciones.forEach(ev => {
+            let fecha = '—';
+            if (ev.createdAt) {
+              let dateObj;
+              if (typeof ev.createdAt === 'string') {
+                dateObj = new Date(ev.createdAt);
+              } else if (ev.createdAt.seconds) {
+                dateObj = new Date(ev.createdAt.seconds * 1000);
+              }
+              if (dateObj && !isNaN(dateObj)) {
+                fecha = dateObj.toLocaleDateString('es-CO', {
+                  day: '2-digit',
+                  month: 'short',
+                });
+              }
+            }
+            fechas.push(fecha);
+            promedios.push(parseFloat(ev.averageScore || '0'));
+          });
+          
+          const avg =
+            promedios.length > 0
+              ? (promedios.reduce((acc, val) => acc + val, 0) / promedios.length).toFixed(2)
+              : 0;
+          
+          setAverage(avg);
+          setChartData({ fechas, promedios });          
+        }
+      } catch (err) {
+        console.error(err);
+        Alert.alert('Error', err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const navigateToProfile = () => {
-    console.log('Navegando a Perfil');
-  };
+    fetchStudentInfoAndHistory();
+  }, [showHistory, filter, yearFilter, levelFilter]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
-
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.header}>
-          <View style={styles.userInfo}>
-            <Text style={styles.userName}>{userData.name}</Text>
-            <View style={styles.levelContainer}>
-              <Text style={styles.levelLabel}>Nivel: {userData.level}</Text>
-              <View style={styles.scoreContainer}>
-                <Text style={styles.scoreText}>{userData.score}</Text>
-              </View>
-            </View>
+    <ScrollView style={styles.scrollView}>
+      <View style={styles.container}>
+        <View style={styles.studentHeader}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.studentName}>{studentInfo?.name || 'Estudiante'}</Text>
+            <Text style={styles.studentLevel}>Nivel: {studentInfo?.lupeLevel || 'N/A'}</Text>
           </View>
-          <View style={styles.profileImageContainer}>
-            <View style={styles.profileImagePlaceholder}>
-              <Text style={styles.profileInitial}>
-                {userData.name.charAt(0)}
-              </Text>
-            </View>
+          <View style={styles.averageBadge}>
+            <Text style={styles.averageValue}>{average}</Text>
           </View>
         </View>
-        <View style={styles.categoriesContainer}>
-          {progressCategories.map((category, index) => (
-            <View key={index} style={styles.categoryItem}>
-              <View
-                style={[styles.categoryDot, {backgroundColor: category.color}]}
-              />
-              <Text style={styles.categoryText}>{category.name}</Text>
-            </View>
-          ))}
-        </View>
-        <Text style={styles.sectionTitle}>Visualización del progreso</Text>
 
+        {showHistory && (
+          <View style={styles.filterContainer}>
+            <TouchableOpacity
+              style={[styles.filterButton, filter === 'week' && styles.activeButton]}
+              onPress={() => setFilter('week')}
+            >
+              <Text style={[styles.filterText, filter === 'week' && styles.activeText]}>Esta semana</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+            style={[styles.filterButton, filter === 'month' && styles.activeButton]}
+            onPress={() => setFilter('month')}
+          >
+            <Text style={[styles.filterText, filter === 'month' && styles.activeText]}>Este mes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, filter === 'year' && styles.activeButton]}
+            onPress={() => setFilter('year')}
+          >
+            <Text style={[styles.filterText, filter === 'year' && styles.activeText]}>Este año</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <Text style={styles.sectionTitle}>Historial del progreso</Text>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#40CDE0" style={{ marginTop: 20 }} />
+      ) : chartData && (chartData.labels || chartData.fechas) ? (
         <View style={styles.chartContainer}>
           <BarChart
-            data={chartData}
-            width={screenWidth}
-            height={220}
-            chartConfig={chartConfig}
-            verticalLabelRotation={0}
+            data={{
+              labels: chartData.labels || chartData.fechas,
+              datasets: [{ data: chartData.datasets?.[0]?.data || chartData.promedios }],
+            }}
+            width={screenWidth - 40}
+            height={280}
+            chartConfig={{
+              backgroundGradientFrom: '#fff',
+              backgroundGradientTo: '#fff',
+              decimalPlaces: 2,
+              color: (opacity = 1) => `rgba(64, 205, 224, ${opacity})`,
+              labelColor: () => '#000',
+              barPercentage: 0.6,
+            }}
             fromZero
             showValuesOnTopOfBars
-            withHorizontalLabels={false}
-            style={styles.chart}
-            yAxisLabel=""
-            yAxisSuffix=""
+            verticalLabelRotation={30}
           />
-          <View style={styles.customLabelsContainer}>
-            <Text style={styles.customLabel}>Control del{'\n'}caballo</Text>
-            <Text style={styles.customLabel}>Postura</Text>
-            <Text style={styles.customLabel}>Movimientos{'\n'}corporales</Text>
-            <Text style={styles.customLabel}>
-              Control de la{'\n'}respiración
-            </Text>
-          </View>
         </View>
-        <View style={styles.classImageContainer}>
-          <Text style={styles.classImageTitle}>Imagen de la clase</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.previousEvaluationsButton}
-          onPress={navigateToPreviousEvaluations}
-          activeOpacity={0.8}>
-          <Icon name="clipboard-text-outline" size={24} color="#fff" />
-          <Text style={styles.previousEvaluationsText}>
-            Evaluaciones previas
-          </Text>
-          <Icon name="chevron-right" size={24} color="#fff" />
-        </TouchableOpacity>
-      </ScrollView>
-      <View style={styles.navbar}>
-        <TouchableOpacity style={styles.navItem} onPress={navigateToHome}>
-          <Icon name="home" size={28} color="#666" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={navigateToProfile}>
-          <Icon name="account" size={28} color="#666" />
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
+      ) : (
+        <Text style={styles.noData}>No hay evaluaciones {filter === 'month' ? 'este mes' : filter === 'week' ? 'esta semana' : 'este año'}.</Text>
+      )}
+
+      <TouchableOpacity
+        style={styles.toggleButton}
+        onPress={() => setShowHistory(!showHistory)}
+      >
+        <Text style={styles.toggleButtonText}>
+          {showHistory ? 'Volver a última evaluación' : 'Ver evaluaciones previas'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </ScrollView>
+);
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-  },
-  scrollView: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 15,
-  },
-  userInfo: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333333',
-  },
-  levelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 5,
-  },
-  levelLabel: {
-    fontSize: 16,
-    color: '#333333',
-    marginRight: 10,
-  },
-  scoreContainer: {
-    backgroundColor: '#ff7b7b',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-  },
-  scoreText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  profileImageContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
-  },
-  profileImagePlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#dddddd',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileInitial: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#666666',
-  },
-  categoriesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginVertical: 15,
-  },
-  categoryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 15,
-    marginBottom: 10,
-  },
-  categoryDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 5,
-  },
-  categoryText: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginTop: 10,
-    marginBottom: 15,
-  },
-  chartContainer: {
-    backgroundColor: '#f0fcfc',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 20,
-  },
-  chart: {
-    marginVertical: 10,
-    borderRadius: 10,
-  },
-  customLabelsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-  },
-  customLabel: {
-    fontSize: 12,
-    color: '#666666',
-    textAlign: 'center',
-    width: '25%',
-  },
-  classImageContainer: {
-    backgroundColor: '#e0f7f7',
-    borderRadius: 10,
-    height: 120,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  classImageTitle: {
-    fontSize: 16,
-    color: '#333333',
-  },
-  previousEvaluationsButton: {
-    backgroundColor: '#4abebd',
-    borderRadius: 10,
-    padding: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  previousEvaluationsText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    flex: 1,
-    marginLeft: 10,
-  },
-  navbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-    height: 60,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    height: '100%',
-  },
+scrollView: {
+  flex: 1,
+  backgroundColor: '#F5F5F5',
+},
+container: {
+  padding: 20,
+  paddingBottom: 80,
+},
+studentHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 10,
+},
+studentName: {
+  fontSize: 24,
+  fontWeight: 'bold',
+  color: '#333',
+},
+studentLevel: {
+  fontSize: 16,
+  color: '#999',
+},
+averageBadge: {
+  backgroundColor: '#FF6F61',
+  borderRadius: 20,
+  paddingHorizontal: 15,
+  paddingVertical: 10,
+},
+averageValue: {
+  color: '#fff',
+  fontSize: 20,
+  fontWeight: 'bold',
+},
+sectionTitle: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  color: '#333',
+  marginVertical: 15,
+},
+chartContainer: {
+  backgroundColor: '#fff',
+  padding: 15,
+  borderRadius: 10,
+  elevation: 3,
+},
+filterContainer: {
+  flexDirection: 'row',
+  justifyContent: 'space-around',
+  marginBottom: 10,
+},
+filterButton: {
+  paddingVertical: 8,
+  paddingHorizontal: 15,
+  borderRadius: 20,
+  backgroundColor: '#e0e0e0',
+},
+activeButton: {
+  backgroundColor: '#40CDE0',
+},
+filterText: {
+  color: '#555',
+},
+activeText: {
+  color: '#fff',
+  fontWeight: 'bold',
+},
+noData: {
+  textAlign: 'center',
+  marginTop: 30,
+  color: '#999',
+},
+toggleButton: {
+  backgroundColor: '#0075A2',
+  padding: 12,
+  borderRadius: 8,
+  marginTop: 20,
+  alignItems: 'center',
+},
+toggleButtonText: {
+  color: '#fff',
+  fontSize: 16,
+  fontWeight: '500',
+},
 });
 
-export default ProgressReport;
+
+export default ProgressReportScreen;

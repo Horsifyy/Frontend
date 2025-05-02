@@ -64,12 +64,15 @@ const LoginScreen = ({navigation}) => {
         throw new Error(data.error || 'Error al iniciar sesión');
       }
 
+      const userData = data.user;
+
       // Inicio de sesión exitoso - el backend ya verificó que el rol coincide
       console.log('Inicio de sesión exitoso:', data);
 
       // Navegar a la pantalla correspondiente
       navigation.replace(
         userType === 'Estudiante' ? 'StudentHome' : 'TeacherHome',
+        { userData }
       );
     } catch (error) {
       console.error('Error en el inicio de sesión:', error);

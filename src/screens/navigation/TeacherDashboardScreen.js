@@ -44,6 +44,7 @@ const TeacherDashboard = ({route, navigation}) => {
       name: student.name,
       lupeLevel: student.lupeLevel || '',
       photoUrl: student.photoUrl || '', // opcional si usas foto
+      role: student.role,
     };
   
     navigation.navigate(screenName, { studentInfo: studentWithLevel });

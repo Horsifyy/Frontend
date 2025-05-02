@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,21 +7,25 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
+  Alert
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useRoute } from '@react-navigation/native';
+import {API_URL} from '../../api/config';
+import auth from '@react-native-firebase/auth';
 
 const StudentDashboard = () => {
   const navigation = useNavigation();
-  const userData = {
-    name: 'Carlos',
-    performanceScore: '16,54',
-  };
+  const route = useRoute();
+const userData = route?.params?.userData ?? { name: 'Estudiante' };
 
-  const navigateToPerformance = () => {
-    navigation.navigate('GetMetrics');
-    console.log('Navegando a GetMetrics');
-  };
+
+const navigateToPerformance = () => {
+  navigation.navigate('ProgressReport', {
+    fromDashboard: true, 
+  });
+};
 
   const navigateToRewards = () => {
     console.log('Navegando a Recompensas');
