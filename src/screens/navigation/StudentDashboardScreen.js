@@ -32,7 +32,7 @@ const navigateToPerformance = () => {
   };
 
   const navigateToSchedule = () => {
-    console.log('Navegando a Programación');
+    navigation.navigate('ScheduleClass');
   };
 
   const navigateToHome = () => {
