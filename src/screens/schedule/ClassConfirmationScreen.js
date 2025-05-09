@@ -1,11 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import Navbar from '../navigation/Navbar';
 
-const ClassConfirmationScreen = ({ route }) => {
+const ClassConfirmationScreen = ({route}) => {
   const navigation = useNavigation();
-  const { date, time } = route.params; // Datos pasados desde la pantalla de programación
+  const {date, time} = route.params; // Datos pasados desde la pantalla de programación
 
   const navigateToStudentClasses = () => {
     navigation.navigate('StudentClasses'); // Navegar a la pantalla de clases programadas
@@ -17,18 +24,24 @@ const ClassConfirmationScreen = ({ route }) => {
       <Text style={styles.subtitle}>¡Te esperamos!</Text>
 
       <View style={styles.classDetails}>
-        <Text style={styles.classDate}>📅 {date} - {time}</Text>
-        <Text style={styles.confirmationMessage}>¡Gracias por confiar en nosotros!</Text>
+        <Text style={styles.classDate}>
+          📅 {date} - {time}
+        </Text>
+        <Text style={styles.confirmationMessage}>
+          ¡Gracias por confiar en nosotros!
+        </Text>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={navigateToStudentClasses}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={navigateToStudentClasses}>
         <Text style={styles.buttonText}>Ver mis clases programadas</Text>
       </TouchableOpacity>
 
       {/* Navbar */}
       <Navbar
         navigateToHome={() => navigation.navigate('StudentDashboard')}
-        navigateToProfile={() => navigation.navigate('TeacherProfile')}
+        navigateToProfile={() => navigation.navigate('StudentProfile')}
       />
     </View>
   );

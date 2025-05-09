@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import {View, TouchableOpacity, Text, StyleSheet} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const Navbar = ({ navigateToHome, navigateToProfile }) => {
+const Navbar = ({navigateToHome, navigateToProfile}) => {
   return (
     <View style={styles.navbar}>
       <TouchableOpacity style={styles.navButton} onPress={navigateToHome}>
-      <Icon name="home" size={30} color="#555" /> 
+        <Icon name="home" size={30} color="#555" />
         <Text style={styles.navButtonText}>Inicio</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.navButton} onPress={navigateToProfile}>

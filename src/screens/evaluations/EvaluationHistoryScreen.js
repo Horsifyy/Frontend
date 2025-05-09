@@ -1,4 +1,3 @@
-// EvaluationHistoryScreen.js
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -8,12 +7,12 @@ import {
   ActivityIndicator,
   Alert,
   TouchableOpacity,
-  TextInput, // Para los comentarios
-  Image, // Para subir imágenes
+  TextInput,
+  Image,
   ScrollView,
 } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
-import { useRoute, useNavigation} from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { API_URL } from '../../api/config';
 import { Picker } from '@react-native-picker/picker';
 import Navbar from '../navigation/Navbar';
@@ -21,9 +20,9 @@ import Navbar from '../navigation/Navbar';
 const screenWidth = Dimensions.get('window').width;
 
 const EvaluationHistoryScreen = () => {
-  const navigation = useNavigation(); 
+  const navigation = useNavigation();
   const route = useRoute();
-  const { studentInfo } = route.params;
+  const { studentInfo } = route.params;  // Aquí obtenemos la información del estudiante de los parámetros
   const [filter, setFilter] = useState('week');
   const [yearFilter, setYearFilter] = useState(new Date().getFullYear());
   const [levelFilter, setLevelFilter] = useState('Amarillo');
@@ -40,7 +39,8 @@ const EvaluationHistoryScreen = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          `${API_URL}/api/evaluations/history/${studentInfo.id}?range=${filter}&year=${yearFilter}&level=${levelFilter}`);
+          `${API_URL}/api/evaluations/history/${studentInfo.id}?range=${filter}&year=${yearFilter}&level=${levelFilter}`,
+        );
         if (!response.ok) throw new Error('No se pudo obtener el historial');
         const data = await response.json();
 
@@ -72,9 +72,12 @@ const EvaluationHistoryScreen = () => {
           promedios.push(parseFloat(ev.averageScore || '0'));
         });
 
-        const avg = promedios.length > 0
-          ? (promedios.reduce((acc, val) => acc + val, 0) / promedios.length).toFixed(2)
-          : 0;
+        const avg =
+          promedios.length > 0
+            ? (
+                promedios.reduce((acc, val) => acc + val, 0) / promedios.length
+              ).toFixed(2)
+            : 0;
 
         setAverage(avg);
         setChartData({ fechas, promedios });
@@ -103,133 +106,147 @@ const EvaluationHistoryScreen = () => {
 
   return (
     <ScrollView style={styles.scrollView}>
-    <View style={styles.container}>
-      <View style={styles.studentHeader}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.studentName}>{studentInfo?.name || 'Estudiante'}</Text>
-          <Text style={styles.studentLevel}>Nivel: {studentInfo?.lupeLevel || '—'}</Text>
+      <View style={styles.container}>
+        <View style={styles.studentHeader}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.studentName}>
+              {studentInfo?.name || 'Estudiante'}
+            </Text>
+            <Text style={styles.studentLevel}>
+              Nivel: {studentInfo?.lupeLevel || '—'}
+            </Text>
+          </View>
+          <View style={styles.averageBadge}>
+            <Text style={styles.averageValue}>{average}</Text>
+          </View>
         </View>
-        <View style={styles.averageBadge}>
-          <Text style={styles.averageValue}>{average}</Text>
-        </View>
-      </View>
 
-      {/* Filtros */}
-      <View style={styles.filterContainer}>
-        <TouchableOpacity
-          style={[styles.filterButton, filter === 'week' && styles.activeButton]}
-          onPress={() => setFilter('week')}
-        >
-          <Text style={[styles.filterText, filter === 'week' && styles.activeText]}>Esta semana</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, filter === 'month' && styles.activeButton]}
-          onPress={() => setFilter('month')}
-        >
-          <Text style={[styles.filterText, filter === 'month' && styles.activeText]}>Este mes</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, filter === 'year' && styles.activeButton]}
-          onPress={() => setFilter('year')}
-        >
-          <Text style={[styles.filterText, filter === 'year' && styles.activeText]}>Este año</Text>
-        </TouchableOpacity>
-      </View>
-
-       {/* Año */}
-       {filter === 'year' && (
+        {/* Filtros */}
         <View style={styles.filterContainer}>
-          <Text style={styles.filterLabel}>Año:</Text>
-          <View style={styles.yearButtonsContainer}>
-            {[2025].map((year) => (
-              <TouchableOpacity
-                key={year}
-                style={[styles.yearButton, yearFilter === year && styles.activeButton]}
-                onPress={() => setYearFilter(year)}
-              >
-                <Text style={[styles.filterText, yearFilter === year && styles.activeText]}>{year}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <TouchableOpacity
+            style={[styles.filterButton, filter === 'week' && styles.activeButton]}
+            onPress={() => setFilter('week')}>
+            <Text style={[styles.filterText, filter === 'week' && styles.activeText]}>
+              Esta semana
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, filter === 'month' && styles.activeButton]}
+            onPress={() => setFilter('month')}>
+            <Text style={[styles.filterText, filter === 'month' && styles.activeText]}>
+              Este mes
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, filter === 'year' && styles.activeButton]}
+            onPress={() => setFilter('year')}>
+            <Text style={[styles.filterText, filter === 'year' && styles.activeText]}>
+              Este año
+            </Text>
+          </TouchableOpacity>
         </View>
-      )}
 
-       {/* Nivel */}
-       <View style={styles.levelFilterContainer}>
-        <Text style={styles.filterLabel}>Seleccione nivel:</Text>
-        <Picker
-          selectedValue={levelFilter}
-          style={styles.picker}
-          onValueChange={(itemValue) => setLevelFilter(itemValue)}
-        >
-          <Picker.Item label="Amarillo" value="Amarillo" />
-          <Picker.Item label="Azul" value="Azul" />
-          <Picker.Item label="Rojo" value="Rojo" />
-        </Picker>
-      </View>
+        {/* Año */}
+        {filter === 'year' && (
+          <View style={styles.filterContainer}>
+            <Text style={styles.filterLabel}>Año:</Text>
+            <View style={styles.yearButtonsContainer}>
+              {[2025].map(year => (
+                <TouchableOpacity
+                  key={year}
+                  style={[styles.yearButton, yearFilter === year && styles.activeButton]}
+                  onPress={() => setYearFilter(year)}>
+                  <Text style={[styles.filterText, yearFilter === year && styles.activeText]}>
+                    {year}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
 
-      <Text style={styles.subheaderText}>Este {filter === 'week' ? 'semana' : filter === 'month' ? 'mes' : 'año'} ha asistido a {chartData?.fechas?.length || 0} clases</Text>
-      <Text style={styles.sectionTitle}>Historial del progreso {filter === 'week' ? 'esta semana' : filter === 'month' ? 'este mes' : 'este año'}</Text>
+        {/* Nivel */}
+        <View style={styles.levelFilterContainer}>
+          <Text style={styles.filterLabel}>Seleccione nivel:</Text>
+          <Picker
+            selectedValue={levelFilter}
+            style={styles.picker}
+            onValueChange={itemValue => setLevelFilter(itemValue)}>
+            <Picker.Item label="Amarillo" value="Amarillo" />
+            <Picker.Item label="Azul" value="Azul" />
+            <Picker.Item label="Rojo" value="Rojo" />
+          </Picker>
+        </View>
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#40CDE0" style={{ marginTop: 20 }} />
-      ) : chartData && chartData.fechas.length > 0 ? (
-        <View style={styles.chartContainer}>
-          <BarChart
-            data={{
-              labels: chartData.fechas,
-              datasets: [{ data: chartData.promedios }],
-            }}
-            width={screenWidth - 40}
-            height={280}
-            yAxisLabel=""
-            chartConfig={{
-              backgroundGradientFrom: '#fff',
-              backgroundGradientTo: '#fff',
-              decimalPlaces: 2,
-              color: (opacity = 1) => `rgba(64, 205, 224, ${opacity})`,
-              labelColor: () => '#000',
-              barPercentage: 0.6,
-            }}
-            fromZero
-            showValuesOnTopOfBars
-            verticalLabelRotation={0}
+        <Text style={styles.subheaderText}>
+          Este{' '}
+          {filter === 'week' ? 'semana' : filter === 'month' ? 'mes' : 'año'} ha
+          asistido a {chartData?.fechas?.length || 0} clases
+        </Text>
+        <Text style={styles.sectionTitle}>
+          Historial del progreso{' '}
+          {filter === 'week'
+            ? 'esta semana'
+            : filter === 'month'
+            ? 'este mes'
+            : 'este año'}
+        </Text>
+
+        {loading ? (
+          <ActivityIndicator size="large" color="#40CDE0" style={{ marginTop: 20 }} />
+        ) : chartData && chartData.fechas.length > 0 ? (
+          <View style={styles.chartContainer}>
+            <BarChart
+              data={{
+                labels: chartData.fechas,
+                datasets: [{ data: chartData.promedios }],
+              }}
+              width={screenWidth - 40}
+              height={280}
+              yAxisLabel=""
+              chartConfig={{
+                backgroundGradientFrom: '#fff',
+                backgroundGradientTo: '#fff',
+                decimalPlaces: 2,
+                color: (opacity = 1) => `rgba(64, 205, 224, ${opacity})`,
+                labelColor: () => '#000',
+                barPercentage: 0.6,
+              }}
+              fromZero
+              showValuesOnTopOfBars
+              verticalLabelRotation={0}
+            />
+          </View>
+        ) : (
+          <Text style={styles.noData}>No hay evaluaciones recientes.</Text>
+        )}
+
+        {/* Comentarios y Subir Imagen */}
+        <View style={styles.actionContainer}>
+          <Text style={styles.actionTitle}>
+            Editar comentarios y recomendaciones específicas:
+          </Text>
+          <TextInput
+            style={styles.input}
+            multiline
+            placeholder="Añade comentarios generales"
+            value={comments}
+            onChangeText={setComments}
           />
-          <View style={styles.chartOverlay}>
-            <View style={[styles.chartZone, { backgroundColor: '#E0F7FA', top: 0, height: '25%' }]} />
-            <View style={[styles.chartZone, { backgroundColor: '#C8E6C9', top: '25%', height: '25%' }]} />
-            <View style={[styles.chartZone, { backgroundColor: '#FFF9C4', top: '50%', height: '25%' }]} />
-            <View style={[styles.chartZone, { backgroundColor: '#FFCCBC', top: '75%', height: '25%' }]} />
-          </View>
+          <TouchableOpacity style={styles.button} onPress={handleSaveComments}>
+            <Text style={styles.buttonText}>Guardar Comentarios</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.actionTitle}>Subir imagen de la clase:</Text>
+          {/* Aquí iría el componente para seleccionar imágenes */}
+          <TouchableOpacity style={styles.button} onPress={handleSaveImage}>
+            <Text style={styles.buttonText}>Subir Imagen</Text>
+          </TouchableOpacity>
         </View>
-      ) : (
-        <Text style={styles.noData}>No hay evaluaciones recientes.</Text>
-      )}
-
-      {/* Comentarios y Subir Imagen */}
-      <View style={styles.actionContainer}>
-        <Text style={styles.actionTitle}>Editar comentarios y recomendaciones específicas:</Text>
-        <TextInput
-          style={styles.input}
-          multiline
-          placeholder="Añade comentarios generales"
-          value={comments}
-          onChangeText={setComments}
-        />
-        <TouchableOpacity style={styles.button} onPress={handleSaveComments}>
-          <Text style={styles.buttonText}>Guardar Comentarios</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.actionTitle}>Subir imagen de la clase:</Text>
-        {/* Aquí iría el componente para seleccionar imágenes */}
-        <TouchableOpacity style={styles.button} onPress={handleSaveImage}>
-          <Text style={styles.buttonText}>Subir Imagen</Text>
-        </TouchableOpacity>
       </View>
-    </View>
-    <Navbar
+      <Navbar
         navigateToHome={() => navigation.navigate('StudentDashboard')}
-        navigateToProfile={() => navigation.navigate('TeacherProfile')}
+        navigateToProfile={() => navigation.navigate('StudentProfile')}
       />
     </ScrollView>
   );
@@ -309,27 +326,27 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 10,
     elevation: 5, // Sombra
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 }, 
-    shadowOpacity: 0.3, 
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
     shadowRadius: 6,
-    marginBottom: 20, 
-    width: '100%',  
+    marginBottom: 20,
+    width: '100%',
   },
   picker: {
-    height: 50, 
+    height: 50,
     width: '100%',
-    borderColor: '#ddd',  
+    borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 10, 
-    backgroundColor: '#f9f9f9', 
-    paddingLeft: 10,  
-    fontSize: 16, 
-    color: '#333', 
+    borderRadius: 10,
+    backgroundColor: '#f9f9f9',
+    paddingLeft: 10,
+    fontSize: 16,
+    color: '#333',
     textAlign: 'center',
   },
   activeText: {
-    color: '#fff', 
+    color: '#fff',
     fontWeight: 'bold',
   },
   subheaderText: {
@@ -409,4 +426,3 @@ const styles = StyleSheet.create({
 });
 
 export default EvaluationHistoryScreen;
-

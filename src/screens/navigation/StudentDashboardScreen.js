@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -7,26 +7,60 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
-  Alert
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useRoute } from '@react-navigation/native';
 import {API_URL} from '../../api/config';
 import auth from '@react-native-firebase/auth';
 import Navbar from '../navigation/Navbar';
 
 const StudentDashboard = () => {
   const navigation = useNavigation();
-  const route = useRoute();
-  const userData = route?.params?.userData ?? { name: 'Estudiante' };
+  const [studentInfo, setStudentInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    fetchStudentInfo();
+  }, []);
 
-const navigateToPerformance = () => {
-  navigation.navigate('ProgressReport', {
-    fromDashboard: true, 
-  });
-};
+  // Fetch the student data
+  const fetchStudentInfo = async () => {
+    try {
+      const currentUser = auth().currentUser;
+      if (!currentUser) throw new Error('Usuario no autenticado');
+
+      const response = await fetch(`${API_URL}/api/users/me`, {
+        headers: {
+          Authorization: `Bearer ${await currentUser.getIdToken(true)}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok)
+        throw new Error(
+          data.error || 'No se pudo obtener la información del estudiante',
+        );
+
+      setStudentInfo(data); // Asigna los datos del estudiante a su estado
+    } catch (error) {
+      console.error(
+        'Error al obtener la información del estudiante:',
+        error.message,
+      );
+      Alert.alert('Error', 'No se pudo obtener la información del perfil.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const navigateToPerformance = () => {
+    navigation.navigate('ProgressReport', {
+      studentData: studentInfo,
+    });
+  };
 
   const navigateToRewards = () => {
     console.log('Navegando a Recompensas');
@@ -41,14 +75,25 @@ const navigateToPerformance = () => {
   };
 
   const navigateToProfile = () => {
-    console.log('Ya estás en Perfil');
+    navigation.navigate('StudentProfile');
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
       <View style={styles.header}>
-        <Text style={styles.greeting}>Hola, {userData.name}</Text>
+        {loading ? (
+          <ActivityIndicator size="large" color="#2B8C96" />
+        ) : (
+          <>
+            <Text style={styles.greeting}>
+              Hola, {studentInfo?.name || 'Estudiante'}
+            </Text>
+            <Text style={styles.level}>
+              Nivel: {studentInfo?.lupeLevel || 'Desconocido'}
+            </Text>
+          </>
+        )}
       </View>
 
       <View style={styles.cardsContainer}>
@@ -61,7 +106,9 @@ const navigateToPerformance = () => {
               style={[styles.iconContainer, styles.performanceIconContainer]}>
               <Icon name="fire" size={30} color="#fff" />
             </View>
-            <Text style={styles.scoreText}>{userData.performanceScore}</Text>
+            <Text style={styles.scoreText}>
+              {studentInfo?.performanceScore || '--'}
+            </Text>
             <Text style={styles.cardLabel}>Desempeño</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -88,7 +135,10 @@ const navigateToPerformance = () => {
           </View>
         </TouchableOpacity>
       </View>
-      <Navbar navigateToHome={navigateToHome} navigateToProfile={navigateToProfile} />
+      <Navbar
+        navigateToHome={navigateToHome}
+        navigateToProfile={navigateToProfile}
+      />
     </SafeAreaView>
   );
 };

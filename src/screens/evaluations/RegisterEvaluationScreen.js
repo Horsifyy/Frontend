@@ -13,7 +13,7 @@ import {
   Switch,
 } from 'react-native';
 import {useRoute, useNavigation} from '@react-navigation/native';
-import {API_URL} from '../../api/config'; 
+import {API_URL} from '../../api/config';
 import Navbar from '../navigation/Navbar';
 
 const RegisterEvaluationScreen = () => {

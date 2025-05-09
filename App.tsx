@@ -17,6 +17,8 @@ import EvaluationHistoryScreen from './src/screens/evaluations/EvaluationHistory
 import ScheduleClassScreen from './src/screens/schedule/ScheduleClassScreen';
 import StudentClassesScreen from './src/screens/schedule/StudentClassesScreen ';
 import ClassConfirmationScreen from './src/screens/schedule/ClassConfirmationScreen';
+import StudentProfileScreen from './src/screens/profile/StudentProfileScreen';
+import EditProfileScreen from './src/screens/profile/EditProfileScreen';
 
 const Stack = createStackNavigator();
 
@@ -44,6 +46,8 @@ const App = () => {
         <Stack.Screen name="ScheduleClass" component={ScheduleClassScreen} />
         <Stack.Screen name="StudentClasses" component={StudentClassesScreen} />
         <Stack.Screen name="ClassConfirmation" component={ClassConfirmationScreen} />
+        <Stack.Screen name="StudentProfile" component={StudentProfileScreen} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -37,9 +37,9 @@ const TeacherDashboard = ({route, navigation}) => {
     {id: 4, title: 'Calendario de clases', color: '#e6e6e6', textColor: '#333'},
   ];
 
-  const handleNavigateToEvaluation = (screenName) => {
+  const handleNavigateToEvaluation = screenName => {
     if (!screenName) return;
-  
+
     const studentWithLevel = {
       id: student.id,
       name: student.name,
@@ -47,10 +47,9 @@ const TeacherDashboard = ({route, navigation}) => {
       photoUrl: student.photoUrl || '', // opcional si usas foto
       role: student.role,
     };
-  
-    navigation.navigate(screenName, { studentInfo: studentWithLevel });
+
+    navigation.navigate(screenName, {studentInfo: studentWithLevel});
   };
-  
 
   return (
     <SafeAreaView style={styles.container}>
