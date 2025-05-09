@@ -13,13 +13,15 @@ import {
   ScrollView,
 } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation} from '@react-navigation/native';
 import { API_URL } from '../../api/config';
 import { Picker } from '@react-native-picker/picker';
+import Navbar from '../navigation/Navbar';
 
 const screenWidth = Dimensions.get('window').width;
 
 const EvaluationHistoryScreen = () => {
+  const navigation = useNavigation(); 
   const route = useRoute();
   const { studentInfo } = route.params;
   const [filter, setFilter] = useState('week');
@@ -225,6 +227,10 @@ const EvaluationHistoryScreen = () => {
         </TouchableOpacity>
       </View>
     </View>
+    <Navbar
+        navigateToHome={() => navigation.navigate('StudentDashboard')}
+        navigateToProfile={() => navigation.navigate('TeacherProfile')}
+      />
     </ScrollView>
   );
 };

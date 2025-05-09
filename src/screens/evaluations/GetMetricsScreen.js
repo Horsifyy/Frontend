@@ -9,8 +9,9 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {BarChart} from 'react-native-chart-kit';
-import {useRoute, useNavigation } from '@react-navigation/native';
+import {useRoute, useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import Navbar from '../navigation/Navbar';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -64,8 +65,7 @@ const GetMetricsScreen = () => {
           </View>
 
           <View style={styles.averageBadge}>
-            <Text style={styles.averageValue}>
-            {averageScore}</Text>
+            <Text style={styles.averageValue}>{averageScore}</Text>
           </View>
           <View style={styles.profileImageContainer}>
             <Image style={styles.profileImage} />
@@ -193,6 +193,10 @@ const GetMetricsScreen = () => {
           <Text style={styles.previousEvalText}>Evaluaciones previas</Text>
         </TouchableOpacity>
       </View>
+      <Navbar
+        navigateToHome={() => navigation.navigate('TeacherHome')}
+        navigateToProfile={() => navigation.navigate('TeacherProfile')}
+      />
     </ScrollView>
   );
 };

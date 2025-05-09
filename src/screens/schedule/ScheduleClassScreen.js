@@ -8,9 +8,12 @@ import {
 } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import { API_URL } from '../../api/config';
+import { useNavigation } from '@react-navigation/native';  // Asegúrate de importar useNavigation
+import Navbar from '../navigation/Navbar';
 
 
 const ScheduleClassScreen = () => {
+  const navigation = useNavigation();  // Usa esto para obtener el objeto de navegación
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -128,6 +131,10 @@ const ScheduleClassScreen = () => {
       <TouchableOpacity style={styles.confirmButton} onPress={programarClase}>
         <Text style={styles.confirmText}>Confirmar clase</Text>
       </TouchableOpacity>
+      <Navbar
+        navigateToHome={() => navigation.navigate('StudentDashboard')}
+        navigateToProfile={() => navigation.navigate('TeacherProfile')}
+      />
     </View>
   );
 };

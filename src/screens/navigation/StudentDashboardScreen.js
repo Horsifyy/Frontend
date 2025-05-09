@@ -14,11 +14,12 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRoute } from '@react-navigation/native';
 import {API_URL} from '../../api/config';
 import auth from '@react-native-firebase/auth';
+import Navbar from '../navigation/Navbar';
 
 const StudentDashboard = () => {
   const navigation = useNavigation();
   const route = useRoute();
-const userData = route?.params?.userData ?? { name: 'Estudiante' };
+  const userData = route?.params?.userData ?? { name: 'Estudiante' };
 
 
 const navigateToPerformance = () => {
@@ -36,7 +37,7 @@ const navigateToPerformance = () => {
   };
 
   const navigateToHome = () => {
-    console.log('Navegando a Home');
+    navigation.navigate('StudentDashboard');
   };
 
   const navigateToProfile = () => {
@@ -87,15 +88,7 @@ const navigateToPerformance = () => {
           </View>
         </TouchableOpacity>
       </View>
-
-      <View style={styles.navbar}>
-        <TouchableOpacity style={styles.navItem} onPress={navigateToHome}>
-          <Icon name="home" size={28} color="#666" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={navigateToProfile}>
-          <Icon name="account" size={28} color="#666" />
-        </TouchableOpacity>
-      </View>
+      <Navbar navigateToHome={navigateToHome} navigateToProfile={navigateToProfile} />
     </SafeAreaView>
   );
 };
@@ -228,7 +221,6 @@ const styles = StyleSheet.create({
     height: 60,
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0, // Ajuste para iOS
   },
   navItem: {
     alignItems: 'center',

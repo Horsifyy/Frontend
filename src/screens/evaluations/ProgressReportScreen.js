@@ -12,10 +12,13 @@ import {
 import { BarChart } from 'react-native-chart-kit';
 import auth from '@react-native-firebase/auth';
 import { API_URL } from '../../api/config';
+import Navbar from '../navigation/Navbar';
+import { useNavigation } from '@react-navigation/native';  
 
 const screenWidth = Dimensions.get('window').width;
 
 const ProgressReportScreen = () => {
+  const navigation = useNavigation();  // Usa esto para obtener el objeto de navegación
   const [filter, setFilter] = useState('month');
   const [yearFilter] = useState(new Date().getFullYear());
   const [levelFilter, setLevelFilter] = useState('Amarillo');
@@ -109,6 +112,7 @@ const ProgressReportScreen = () => {
   }, [showHistory, filter, yearFilter, levelFilter]);
 
   return (
+    <View style={{ flex: 1 }}>
     <ScrollView style={styles.scrollView}>
       <View style={styles.container}>
         <View style={styles.studentHeader}>
@@ -184,6 +188,11 @@ const ProgressReportScreen = () => {
       </TouchableOpacity>
     </View>
   </ScrollView>
+  <Navbar
+      navigateToHome={() => navigation.navigate('StudentDashboard')}
+      navigateToProfile={() => navigation.navigate('TeacherProfile')}
+    />
+  </View>
 );
 };
 

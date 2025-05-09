@@ -13,6 +13,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
 import {API_URL} from '../../api/config';
+import Navbar from '../navigation/Navbar';
 
 const TeacherHome = ({navigation}) => {
   const [students, setStudents] = useState([]);
@@ -105,14 +106,10 @@ const TeacherHome = ({navigation}) => {
           ))}
         </ScrollView>
       </View>
-      <View style={styles.bottomNavBar}>
-        <TouchableOpacity style={styles.navButton}>
-          <Icon name="home" size={24} color="#555" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton}>
-          <Icon name="person" size={24} color="#aaa" />
-        </TouchableOpacity>
-      </View>
+      <Navbar
+        navigateToHome={() => navigation.navigate('TeacherHome')}
+        navigateToProfile={() => console.log('Navegando a Perfil')}
+      />
     </SafeAreaView>
   );
 };

@@ -13,7 +13,8 @@ import {
   Switch,
 } from 'react-native';
 import {useRoute, useNavigation} from '@react-navigation/native';
-import {API_URL} from '../../api/config'; // Asegúrate de que esta ruta sea correcta según tu proyecto
+import {API_URL} from '../../api/config'; 
+import Navbar from '../navigation/Navbar';
 
 const RegisterEvaluationScreen = () => {
   const {params} = useRoute();
@@ -252,6 +253,10 @@ const RegisterEvaluationScreen = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <Navbar
+        navigateToHome={() => navigation.navigate('TeacherHome')}
+        navigateToProfile={() => navigation.navigate('TeacherProfile')}
+      />
     </SafeAreaView>
   );
 };

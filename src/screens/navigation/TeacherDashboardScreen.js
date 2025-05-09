@@ -8,6 +8,7 @@ import {
   StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import Navbar from '../navigation/Navbar';
 
 const TeacherDashboard = ({route, navigation}) => {
   const {student} = route.params;
@@ -77,16 +78,10 @@ const TeacherDashboard = ({route, navigation}) => {
           ))}
         </View>
       </View>
-      <View style={styles.bottomNavBar}>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('TeacherHome')}>
-          <Icon name="home" size={24} color="#555" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton}>
-          <Icon name="person" size={24} color="#aaa" />
-        </TouchableOpacity>
-      </View>
+      <Navbar
+        navigateToHome={() => navigation.navigate('TeacherHome')}
+        navigateToProfile={() => navigation.navigate('TeacherProfile')}
+      />
     </SafeAreaView>
   );
 };
