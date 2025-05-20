@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,37 +6,39 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import auth from '@react-native-firebase/auth';
-import {API_URL} from '../../api/config';
+import { API_URL } from '../../api/config';
 import Navbar from '../navigation/Navbar';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 const StudentClassesScreen = () => {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
-  useEffect(() => {
-    fetchStudentClasses();
-  }, []);
-
-  const fetchStudentClasses = async () => {
+  const fetchStudentClasses = useCallback(async () => {
     try {
+      setLoading(true);
       const currentUser = auth().currentUser;
       if (!currentUser) throw new Error('Usuario no autenticado');
 
+      const token = await currentUser.getIdToken(true);
+
       const response = await fetch(
         `${API_URL}/api/classes/student/${currentUser.uid}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
       const data = await response.json();
 
       if (!response.ok)
         throw new Error(data.error || 'No se pudieron obtener las clases');
 
-      // Opcional: ordena por fecha/hora
       const sorted = data.sort(
-        (a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time),
+        (a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)
       );
 
       setClasses(sorted);
@@ -46,15 +48,69 @@ const StudentClassesScreen = () => {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchStudentClasses();
+  }, [fetchStudentClasses]);
+
+  // Cancelar clase
+  const cancelClass = async (classId) => {
+    try {
+      const currentUser = auth().currentUser;
+      if (!currentUser) throw new Error('Usuario no autenticado');
+
+      const token = await currentUser.getIdToken(true);
+
+      const response = await fetch(`${API_URL}/api/classes/cancel/${classId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error || 'Error cancelando clase');
+
+      Alert.alert('Éxito', 'Clase cancelada correctamente');
+      fetchStudentClasses();
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
   };
 
-  const renderItem = ({item}) => (
+  // Navegar para reprogramar clase
+  const reprogramClass = (clase) => {
+    navigation.navigate('ScheduleClass', { claseParaEditar: clase });
+  };
+
+  const renderItem = ({ item }) => (
     <View style={styles.classCard}>
       <Text style={styles.classText}>📅 {item.date}</Text>
       <Text style={styles.classText}>⏰ {item.time}</Text>
-      <Text style={styles.classText}>
-        📌 Estado: {item.status || 'programada'}
-      </Text>
+      <Text style={styles.classText}>📌 Estado: {item.status || 'programada'}</Text>
+      <View style={styles.buttonsRow}>
+        <TouchableOpacity
+          style={[styles.button, styles.reprogramButton]}
+          onPress={() => reprogramClass(item)}
+        >
+          <Text style={styles.buttonText}>Reprogramar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.cancelButton]}
+          onPress={() =>
+            Alert.alert(
+              'Confirmar cancelación',
+              '¿Deseas cancelar esta clase?',
+              [
+                { text: 'No', style: 'cancel' },
+                { text: 'Sí', onPress: () => cancelClass(item.id) },
+              ]
+            )
+          }
+        >
+          <Text style={styles.buttonText}>Cancelar</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -66,11 +122,7 @@ const StudentClassesScreen = () => {
       ) : classes.length === 0 ? (
         <Text style={styles.noClasses}>No tienes clases programadas.</Text>
       ) : (
-        <FlatList
-          data={classes}
-          keyExtractor={item => item.id}
-          renderItem={renderItem}
-        />
+        <FlatList data={classes} keyExtractor={(item) => item.id} renderItem={renderItem} />
       )}
       <Navbar
         navigateToHome={() => navigation.navigate('StudentDashboard')}
@@ -112,4 +164,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
+  buttonsRow: {
+    flexDirection: 'row',
+    marginTop: 12,
+    justifyContent: 'space-between',
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  reprogramButton: {
+    backgroundColor: '#106e7e',
+    marginRight: 10,
+  },
+  cancelButton: {
+    backgroundColor: '#e53935',
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
 });
+

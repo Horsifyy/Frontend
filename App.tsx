@@ -19,6 +19,11 @@ import StudentClassesScreen from './src/screens/schedule/StudentClassesScreen ';
 import ClassConfirmationScreen from './src/screens/schedule/ClassConfirmationScreen';
 import StudentProfileScreen from './src/screens/profile/StudentProfileScreen';
 import EditProfileScreen from './src/screens/profile/EditProfileScreen';
+import StudentListScreen from './src/screens/navigation/StudentListScreen';
+import TeacherScheduleScreen from './src/screens/schedule/TeacherScheduleScreen';
+import TeacherProfileScreen from './src/screens/profile/TeacherProfileScreen';
+import EditTeacherProfileScreen from './src/screens/profile/EditTeacherProfileScreen';
+import RewardsScreen from './src/screens/rewards/RewardsScreen';
 
 const Stack = createStackNavigator();
 
@@ -48,6 +53,11 @@ const App = () => {
         <Stack.Screen name="ClassConfirmation" component={ClassConfirmationScreen} />
         <Stack.Screen name="StudentProfile" component={StudentProfileScreen} />
         <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+        <Stack.Screen name="StudentList" component={StudentListScreen} />
+        <Stack.Screen name="TeacherSchedule" component={TeacherScheduleScreen} />
+        <Stack.Screen name="TeacherProfileScreen" component={TeacherProfileScreen} />
+        <Stack.Screen name="EditTeacherProfileScreen" component={EditTeacherProfileScreen} />
+        <Stack.Screen name="RewardsScreen" component={RewardsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

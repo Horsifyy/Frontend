@@ -1,31 +1,22 @@
-import React, {useState, useEffect} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import auth from '@react-native-firebase/auth';
-import {API_URL} from '../../api/config';
+import { API_URL } from '../../api/config';
 import Navbar from '../navigation/Navbar';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
-const EditProfileScreen = () => {
+const EditTeacherProfileScreen = () => {
   const navigation = useNavigation();
-  const [studentInfo, setStudentInfo] = useState(null);
+  const [teacherInfo, setTeacherInfo] = useState(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchStudentInfo();
+    fetchTeacherInfo();
   }, []);
 
-  const fetchStudentInfo = async () => {
+  const fetchTeacherInfo = async () => {
     try {
       const currentUser = auth().currentUser;
       if (!currentUser) throw new Error('Usuario no autenticado');
@@ -39,18 +30,13 @@ const EditProfileScreen = () => {
       const data = await response.json();
 
       if (!response.ok)
-        throw new Error(
-          data.error || 'No se pudo obtener la información del estudiante',
-        );
+        throw new Error(data.error || 'No se pudo obtener la información del profesor');
 
-      setStudentInfo(data);
+      setTeacherInfo(data);
       setName(data.name); // Inicializa el nombre
       setEmail(data.email); // Inicializa el email
     } catch (error) {
-      console.error(
-        'Error al obtener la información del estudiante:',
-        error.message,
-      );
+      console.error('Error al obtener la información del profesor:', error.message);
       Alert.alert('Error', 'No se pudo obtener la información del perfil.');
     } finally {
       setLoading(false);
@@ -65,29 +51,26 @@ const EditProfileScreen = () => {
       const updatedData = {
         name,
         email,
-        // La imagen de perfil no se actualiza por ahora
-        profilePicture: studentInfo.profilePicture,
+        // El profesor no tiene imagen de perfil por ahora, pero podemos permitirla más adelante
+        profilePicture: teacherInfo.profilePicture,
       };
 
-      const response = await fetch(
-        `${API_URL}/api/users/edit/${currentUser.uid}`,
-        {
-          method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updatedData),
+      const response = await fetch(`${API_URL}/api/users/edit/${currentUser.uid}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(updatedData),
+      });
 
       const data = await response.json();
 
       if (response.ok) {
         Alert.alert('Perfil actualizado con éxito');
-        setStudentInfo({
-          ...studentInfo,
-          profilePicture: studentInfo.profilePicture,
+        setTeacherInfo({
+          ...teacherInfo,
+          profilePicture: teacherInfo.profilePicture,
         });
         navigation.goBack(); // Volver a la pantalla de perfil
       } else {
@@ -103,20 +86,15 @@ const EditProfileScreen = () => {
     <View style={styles.container}>
       {loading ? (
         <ActivityIndicator size="large" color="#2B8C96" />
-      ) : studentInfo ? (
+      ) : teacherInfo ? (
         <View style={styles.profileContainer}>
-          <Text style={styles.title}>Editar Perfil</Text>
+          <Text style={styles.title}>Editar Perfil del Profesor</Text>
 
           <View style={styles.profileHeader}>
-            <Image
-              style={styles.profileImage}
-              source={{uri: studentInfo.profilePicture}}
-            />
+            <Image style={styles.profileImage} source={{ uri: teacherInfo.profilePicture }} />
             {/* Solo mostramos la opción de cambiar imagen sin funcionalidad */}
             <TouchableOpacity style={styles.changePictureButton} disabled>
-              <Text style={styles.changePictureText}>
-                Cambiar imagen de perfil
-              </Text>
+              <Text style={styles.changePictureText}>Cambiar imagen de perfil</Text>
             </TouchableOpacity>
           </View>
 
@@ -134,9 +112,7 @@ const EditProfileScreen = () => {
             keyboardType="email-address"
           />
 
-          <TouchableOpacity
-            style={styles.saveButton}
-            onPress={handleSaveProfile}>
+          <TouchableOpacity style={styles.saveButton} onPress={handleSaveProfile}>
             <Text style={styles.saveButtonText}>Guardar Cambios</Text>
           </TouchableOpacity>
         </View>
@@ -146,8 +122,8 @@ const EditProfileScreen = () => {
 
       {/* Navbar */}
       <Navbar
-        navigateToHome={() => navigation.navigate('StudentDashboard')}
-        navigateToProfile={() => navigation.navigate('StudentProfile')}
+        navigateToHome={() => navigation.navigate('TeacherDashboard')}
+        navigateToProfile={() => navigation.navigate('TeacherProfile')}
       />
     </View>
   );
@@ -219,4 +195,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EditProfileScreen;
+export default EditTeacherProfileScreen;

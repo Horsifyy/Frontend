@@ -63,7 +63,7 @@ const StudentDashboard = () => {
   };
 
   const navigateToRewards = () => {
-    console.log('Navegando a Recompensas');
+    navigation.navigate('RewardsScreen');
   };
 
   const navigateToSchedule = () => {

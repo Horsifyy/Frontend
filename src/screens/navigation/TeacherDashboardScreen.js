@@ -34,7 +34,6 @@ const TeacherDashboard = ({route, navigation}) => {
       textColor: '#333',
       screen: 'RegisterEvaluation',
     },
-    {id: 4, title: 'Calendario de clases', color: '#e6e6e6', textColor: '#333'},
   ];
 
   const handleNavigateToEvaluation = screenName => {
@@ -79,7 +78,7 @@ const TeacherDashboard = ({route, navigation}) => {
       </View>
       <Navbar
         navigateToHome={() => navigation.navigate('TeacherHome')}
-        navigateToProfile={() => navigation.navigate('TeacherProfile')}
+        navigateToProfile={() => navigation.navigate('TeacherProfileScreen')}
       />
     </SafeAreaView>
   );

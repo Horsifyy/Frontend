@@ -255,7 +255,7 @@ const RegisterEvaluationScreen = () => {
       </ScrollView>
       <Navbar
         navigateToHome={() => navigation.navigate('TeacherHome')}
-        navigateToProfile={() => navigation.navigate('TeacherProfile')}
+        navigateToProfile={() => navigation.navigate('TeacherProfileScreen')}
       />
     </SafeAreaView>
   );

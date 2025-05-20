@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,10 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
-import { BarChart } from 'react-native-chart-kit';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { API_URL } from '../../api/config';
-import { Picker } from '@react-native-picker/picker';
+import {BarChart} from 'react-native-chart-kit';
+import {useRoute, useNavigation} from '@react-navigation/native';
+import {API_URL} from '../../api/config';
+import {Picker} from '@react-native-picker/picker';
 import Navbar from '../navigation/Navbar';
 
 const screenWidth = Dimensions.get('window').width;
@@ -22,7 +22,7 @@ const screenWidth = Dimensions.get('window').width;
 const EvaluationHistoryScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { studentInfo } = route.params;  // Aquí obtenemos la información del estudiante de los parámetros
+  const {studentInfo} = route.params; // Aquí obtenemos la información del estudiante de los parámetros
   const [filter, setFilter] = useState('week');
   const [yearFilter, setYearFilter] = useState(new Date().getFullYear());
   const [levelFilter, setLevelFilter] = useState('Amarillo');
@@ -80,7 +80,7 @@ const EvaluationHistoryScreen = () => {
             : 0;
 
         setAverage(avg);
-        setChartData({ fechas, promedios });
+        setChartData({fechas, promedios});
       } catch (err) {
         console.error(err);
         Alert.alert('Error', err.message);
@@ -108,7 +108,7 @@ const EvaluationHistoryScreen = () => {
     <ScrollView style={styles.scrollView}>
       <View style={styles.container}>
         <View style={styles.studentHeader}>
-          <View style={{ flex: 1 }}>
+          <View style={{flex: 1}}>
             <Text style={styles.studentName}>
               {studentInfo?.name || 'Estudiante'}
             </Text>
@@ -124,23 +124,44 @@ const EvaluationHistoryScreen = () => {
         {/* Filtros */}
         <View style={styles.filterContainer}>
           <TouchableOpacity
-            style={[styles.filterButton, filter === 'week' && styles.activeButton]}
+            style={[
+              styles.filterButton,
+              filter === 'week' && styles.activeButton,
+            ]}
             onPress={() => setFilter('week')}>
-            <Text style={[styles.filterText, filter === 'week' && styles.activeText]}>
+            <Text
+              style={[
+                styles.filterText,
+                filter === 'week' && styles.activeText,
+              ]}>
               Esta semana
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.filterButton, filter === 'month' && styles.activeButton]}
+            style={[
+              styles.filterButton,
+              filter === 'month' && styles.activeButton,
+            ]}
             onPress={() => setFilter('month')}>
-            <Text style={[styles.filterText, filter === 'month' && styles.activeText]}>
+            <Text
+              style={[
+                styles.filterText,
+                filter === 'month' && styles.activeText,
+              ]}>
               Este mes
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.filterButton, filter === 'year' && styles.activeButton]}
+            style={[
+              styles.filterButton,
+              filter === 'year' && styles.activeButton,
+            ]}
             onPress={() => setFilter('year')}>
-            <Text style={[styles.filterText, filter === 'year' && styles.activeText]}>
+            <Text
+              style={[
+                styles.filterText,
+                filter === 'year' && styles.activeText,
+              ]}>
               Este año
             </Text>
           </TouchableOpacity>
@@ -154,9 +175,16 @@ const EvaluationHistoryScreen = () => {
               {[2025].map(year => (
                 <TouchableOpacity
                   key={year}
-                  style={[styles.yearButton, yearFilter === year && styles.activeButton]}
+                  style={[
+                    styles.yearButton,
+                    yearFilter === year && styles.activeButton,
+                  ]}
                   onPress={() => setYearFilter(year)}>
-                  <Text style={[styles.filterText, yearFilter === year && styles.activeText]}>
+                  <Text
+                    style={[
+                      styles.filterText,
+                      yearFilter === year && styles.activeText,
+                    ]}>
                     {year}
                   </Text>
                 </TouchableOpacity>
@@ -193,13 +221,17 @@ const EvaluationHistoryScreen = () => {
         </Text>
 
         {loading ? (
-          <ActivityIndicator size="large" color="#40CDE0" style={{ marginTop: 20 }} />
+          <ActivityIndicator
+            size="large"
+            color="#40CDE0"
+            style={{marginTop: 20}}
+          />
         ) : chartData && chartData.fechas.length > 0 ? (
           <View style={styles.chartContainer}>
             <BarChart
               data={{
                 labels: chartData.fechas,
-                datasets: [{ data: chartData.promedios }],
+                datasets: [{data: chartData.promedios}],
               }}
               width={screenWidth - 40}
               height={280}
@@ -245,8 +277,8 @@ const EvaluationHistoryScreen = () => {
         </View>
       </View>
       <Navbar
-        navigateToHome={() => navigation.navigate('StudentDashboard')}
-        navigateToProfile={() => navigation.navigate('StudentProfile')}
+        navigateToHome={() => navigation.navigate('TeacherHome')}
+        navigateToProfile={() => navigation.navigate('TeacherProfileScreen')}
       />
     </ScrollView>
   );
@@ -327,7 +359,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     elevation: 5, // Sombra
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 6,
     marginBottom: 20,
@@ -369,7 +401,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowRadius: 3,
     elevation: 2,
   },

@@ -124,8 +124,12 @@ const ProgressReportScreen = () => {
         <View style={styles.container}>
           <View style={styles.studentHeader}>
             <View style={{flex: 1}}>
-            <Text style={styles.studentName}>{studentInfo?.name || 'Estudiante'}</Text>
-            <Text style={styles.studentLevel}>Nivel: {studentInfo?.lupeLevel || 'Desconocido'}</Text>
+              <Text style={styles.studentName}>
+                {studentInfo?.name || 'Estudiante'}
+              </Text>
+              <Text style={styles.studentLevel}>
+                Nivel: {studentInfo?.lupeLevel || 'Desconocido'}
+              </Text>
             </View>
             <View style={styles.averageBadge}>
               <Text style={styles.averageValue}>{average}</Text>

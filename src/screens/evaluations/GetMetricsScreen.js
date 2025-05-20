@@ -195,7 +195,7 @@ const GetMetricsScreen = () => {
       </View>
       <Navbar
         navigateToHome={() => navigation.navigate('TeacherHome')}
-        navigateToProfile={() => navigation.navigate('TeacherProfile')}
+        navigateToProfile={() => navigation.navigate('TeacherProfileScreen')}
       />
     </ScrollView>
   );

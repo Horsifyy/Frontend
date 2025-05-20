@@ -1,114 +1,76 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
   TouchableOpacity,
   StatusBar,
   ActivityIndicator,
-  Alert,
+  Alert
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
-import {API_URL} from '../../api/config';
+import { API_URL } from '../../api/config';
 import Navbar from '../navigation/Navbar';
 
-const TeacherHome = ({navigation}) => {
-  const [students, setStudents] = useState([]);
+const TeacherHomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
 
+  // UseEffect para cargar cualquier dato necesario del backend (si aplica)
   useEffect(() => {
-    fetchStudents();
+    setLoading(false); 
   }, []);
 
-  const fetchStudents = async () => {
-    try {
-      setLoading(true);
-
-      // Obtener token del usuario actual
-      const currentUser = auth().currentUser;
-      if (!currentUser) {
-        throw new Error('No hay usuario autenticado');
-      }
-
-      const idToken = await currentUser.getIdToken(true);
-
-      const response = await fetch(`${API_URL}/api/auth/students`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al obtener estudiantes');
-      }
-      data.students.forEach(student => {
-        if (
-          !student.lupeLevel ||
-          !['Amarillo', 'Azul', 'Rojo'].includes(student.lupeLevel)
-        ) {
-          console.log(`Estudiante ${student.name} sin nivel LUPE válido`);
-        }
-      });
-      setStudents(data.students);
-    } catch (error) {
-      console.error('Error al cargar estudiantes:', error);
-      Alert.alert(
-        'Error',
-        'No se pudieron cargar los estudiantes. Por favor intenta nuevamente.',
-      );
-    } finally {
-      setLoading(false);
-    }
+  const navigateToStudentList = () => {
+    navigation.navigate('StudentList');
   };
 
-  const navigateToTeacherDashboard = student => {
-    console.log(
-      'Navegando al dashboard con estudiante:',
-      JSON.stringify(student),
-    );
-    navigation.navigate('TeacherDashboard', {
-      student: {
-        id: student.id,
-        name: student.name,
-        lupeLevel: student.lupeLevel, // ← asigna nivel si no viene
-        role: student.role,
-      },
-    });
+  const navigateToSchedule = () => {
+    navigation.navigate('TeacherSchedule');
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#106e7e" />
+      
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.welcomeText}>¡Bienvenido profesor!</Text>
+        <Text style={styles.welcomeText}>¡Bienvenido, Profesor!</Text>
       </View>
-      <View style={styles.contentContainer}>
-        <Text style={styles.sectionTitle}>Alumnos inscritos</Text>
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}>
-          {students.map(student => (
-            <TouchableOpacity
-              key={student.id}
-              style={styles.studentCard}
-              onPress={() => navigateToTeacherDashboard(student)}
-              activeOpacity={0.7}>
-              <View style={styles.studentAvatar} />
-              <Text style={styles.studentName}>{student.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+
+      {/* Dashboard */}
+      <View style={styles.dashboardContainer}>
+        <View style={styles.row}>
+          {/* Button for Student List */}
+          <TouchableOpacity
+            style={[styles.card, styles.performanceCard]}
+            onPress={navigateToStudentList}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.iconContainer, styles.performanceIconContainer]}>
+              <Icon name="person" size={30} color="#fff" />
+            </View>
+            <Text style={styles.cardLabel}>Lista de Estudiantes</Text>
+          </TouchableOpacity>
+
+          {/* Button for Schedule */}
+          <TouchableOpacity
+            style={[styles.card, styles.scheduleCard]}
+            onPress={navigateToSchedule}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.iconContainer, styles.scheduleIconContainer]}>
+              <Icon name="calendar" size={30} color="#fff" />
+            </View>
+            <Text style={styles.cardLabel}>Horario de Clases</Text>
+          </TouchableOpacity>
+        </View>
       </View>
+
       <Navbar
         navigateToHome={() => navigation.navigate('TeacherHome')}
-        navigateToProfile={() => console.log('Navegando a Perfil')}
+        navigateToProfile={() => navigation.navigate('TeacherProfileScreen')}
       />
     </SafeAreaView>
   );
@@ -133,52 +95,58 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-  contentContainer: {
+  dashboardContainer: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    padding: 20,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 15,
-  },
-  scrollView: {
-    flex: 1,
-    marginBottom: 10,
-  },
-  studentCard: {
+  row: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15,
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
-  studentAvatar: {
-    width: 50,
-    height: 50,
-    backgroundColor: '#c8eff5',
-    borderRadius: 10,
-    marginRight: 15,
+  card: {
+    borderRadius: 15,
+    padding: 20,
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  studentName: {
-    fontSize: 16,
-    color: '#333',
-  },
-  bottomNavBar: {
-    height: 60,
-    backgroundColor: '#f0f0f0',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-  },
-  navButton: {
+  performanceCard: {
+    backgroundColor: '#ff7b7b',
+    width: '48%',
+    height: 150,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  scheduleCard: {
+    backgroundColor: '#4abebd',
+    width: '48%',
+    height: 150,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconContainer: {
     width: 60,
     height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  performanceIconContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  scheduleIconContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  cardLabel: {
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
 
-export default TeacherHome;
+export default TeacherHomeScreen;

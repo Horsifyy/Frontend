@@ -1,14 +1,44 @@
-import React, {useEffect} from 'react';
-import {View, Text, StyleSheet, SafeAreaView, StatusBar} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
+import auth from '@react-native-firebase/auth';
+import { API_URL } from '../../api/config';
 
-const StudentHome = ({points = 578, navigation}) => {
+const StudentHome = ({ navigation }) => {
+  const [points, setPoints] = useState(null);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       navigation.navigate('StudentDashboard');
     }, 3000);
-
     return () => clearTimeout(timer);
   }, [navigation]);
+
+  useEffect(() => {
+    const fetchPoints = async () => {
+      try {
+        const currentUser = auth().currentUser;
+        if (!currentUser) throw new Error('No autenticado');
+
+        const token = await currentUser.getIdToken(true);
+        const studentId = currentUser.uid;
+
+        const response = await fetch(`${API_URL}/api/evaluations/students/${studentId}/points`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Error al obtener puntos');
+
+        setPoints(data.points);
+      } catch (err) {
+        console.error('Error obteniendo puntos:', err.message);
+      }
+    };
+
+    fetchPoints();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -18,10 +48,11 @@ const StudentHome = ({points = 578, navigation}) => {
         <Text style={styles.welcomeText}>¡Bienvenid@!</Text>
         <View style={styles.pointsCircle}>
           <Text style={styles.pointsLabel}>Puntos acumulados:</Text>
-          <Text style={styles.pointsValue}>{points}</Text>
+          <Text style={styles.pointsValue}>
+            {points !== null ? points : '...'}
+          </Text>
         </View>
       </View>
-
       <View style={styles.bottomShapeContainer}>
         <View style={styles.bottomLeftShape} />
         <View style={styles.bottomRightShape} />
@@ -29,7 +60,6 @@ const StudentHome = ({points = 578, navigation}) => {
     </SafeAreaView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
