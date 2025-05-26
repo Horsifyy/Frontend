@@ -82,66 +82,85 @@ const LastReportScreen = () => {
   return (
     <View style={{flex: 1}}>
       <ScrollView style={styles.scrollView}>
-        <View style={styles.container}>
-          {loading ? (
-            <ActivityIndicator size="large" color="#2B8C96" />
-          ) : (
-            <>
-              <View style={styles.header}>
-                <View style={styles.profileContainer}>
-                  {studentInfo?.profilePicture ? (
-                    <Image
-                      source={{uri: studentInfo.profilePicture}}
-                      style={styles.profileImage}
-                    />
-                  ) : (
-                    <View style={styles.placeholderIcon}>
-                      <Icon name="account" size={50} color="#999" />
-                    </View>
-                  )}
-                </View>
-                <View style={{flex: 1}}>
-                  <Text style={styles.studentName}>
-                    {studentInfo?.name || 'Estudiante'}
-                  </Text>
-                  <Text
-                    style={{
-                      color: levelColors[studentInfo?.lupeLevel] || '#666',
-                      fontWeight: 'bold',
-                    }}>
-                    Nivel: {studentInfo?.lupeLevel}
-                  </Text>
-                </View>
-                <View style={styles.averageBadge}>
-                  <Text style={styles.averageValue}>{average.toFixed(2)}</Text>
-                </View>
-              </View>
+     {!loading && (
+        <View style={styles.topHeader}>
+          <View style={styles.topShape} />
+          <Text style={styles.topHeaderTitle}>Informe de evaluación</Text>
 
-              <Text style={styles.sectionTitle}>Última evaluación</Text>
+          <View style={styles.studentInfo}>
+            <View style={styles.profileContainer}>
+              {studentInfo?.profilePicture ? (
+                <Image
+                  source={{uri: studentInfo.profilePicture}}
+                  style={styles.profileImage}
+                />
+              ) : (
+                <View style={styles.placeholderIcon}>
+                  <Icon name="account" size={50} color="#999" />
+                </View>
+              )}
+            </View>
+
+            <View style={{flex: 1}}>
+              <Text style={styles.studentName}>
+                {studentInfo?.name || 'Estudiante'}
+              </Text>
+              <Text
+                style={{
+                  color: levelColors[studentInfo?.lupeLevel] || '#FFC107',
+                  fontWeight: 'bold',
+                }}>
+                Nivel: {studentInfo?.lupeLevel || 'N/A'}
+              </Text>
+            </View>
+
+            <View style={styles.averageBadge}>
+              <Text style={styles.averageValue}>{average.toFixed(2)}</Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+       <View style={styles.container}>
+        {loading ? (
+          <ActivityIndicator size="large" color="#2B8C96" />
+        ) : (
+          <>
+            <Text style={styles.sectionTitle}>Última evaluación</Text>
 
               {chartData && (
-                <BarChart
-                  data={chartData}
-                  width={screenWidth - 40}
-                  height={280}
-                  chartConfig={{
-                    backgroundGradientFrom: '#fff',
-                    backgroundGradientTo: '#fff',
-                    decimalPlaces: 2,
-                    color: (opacity = 1) => `rgba(64, 205, 224, ${opacity})`,
-                    labelColor: () => '#000',
-                    barPercentage: 0.6,
-                  }}
-                  fromZero
-                  showValuesOnTopOfBars
-                  verticalLabelRotation={30}
-                />
+                <View style={styles.chartContainer}>
+                  <BarChart
+                    data={chartData}
+                    width={screenWidth - 60} // margen lateral aumentado
+                    height={400}
+                    chartConfig={{
+                      backgroundGradientFrom: '#fff',
+                      backgroundGradientTo: '#fff',
+                      decimalPlaces: 1,
+                      color: (opacity = 1) => `rgba(43, 140, 150, ${opacity})`,
+                      labelColor: () => '#333',
+                      barPercentage: 0.55,
+                      propsForLabels: {
+                        fontSize: 10,
+                        fontWeight: '500',
+                      },
+                    }}
+                    fromZero
+                    showValuesOnTopOfBars
+                    verticalLabelRotation={20}
+                  />
+                </View>
               )}
 
               {imageUrl ? (
                 <View style={styles.imageContainer}>
                   <Text style={styles.sectionTitle}>Imagen de clase</Text>
-                  <Image source={{uri: imageUrl}} style={styles.image} resizeMode="contain"  />
+                  <Image
+                    source={{uri: imageUrl}}
+                    style={styles.image}
+                    resizeMode="contain"
+                  />
                 </View>
               ) : null}
 
@@ -230,8 +249,8 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-  aspectRatio: 16 / 9, // formato panorámico
-  borderRadius: 10,
+    aspectRatio: 16 / 9, // formato panorámico
+    borderRadius: 10,
   },
   commentsContainer: {
     backgroundColor: '#f0f0f0',
@@ -255,6 +274,49 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
+  chartContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    marginBottom: 2,
+  },
+ topHeader: {
+  backgroundColor: '#2B8C96',
+  paddingVertical: 30,
+  paddingHorizontal: 20,
+  position: 'relative',
+  borderBottomLeftRadius: 30,
+  borderBottomRightRadius: 30,
+  marginBottom: 10,
+},
+topShape: {
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  width: '50%',
+  height: '100%',
+  backgroundColor: '#236B73',
+  borderBottomLeftRadius: 60,
+},
+topHeaderTitle: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  color: '#fff',
+  marginBottom: 20,
+  zIndex: 1,
+},
+studentInfo: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  zIndex: 1,
+},
+
+
 });
 
 export default LastReportScreen;

@@ -29,32 +29,48 @@ const ForgotPasswordScreen = ({ navigation }) => {
     }
   };
 
-  return (
+ return (
     <View style={styles.container}>
-      <Text style={styles.title}>Recuperar Contraseña</Text>
+      <View style={styles.topShape} />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Ingresa tu correo"
-        value={email}
-        onChangeText={setEmail}
-      />
+      <View style={styles.content}>
+        <Text style={styles.title}>Recuperar Contraseña</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Ingresa tu nueva contraseña"
-        value={newPassword}
-        onChangeText={setNewPassword}
-        secureTextEntry
-      />
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Email</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ingresa tu correo"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            placeholderTextColor="#999"
+          />
+        </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
-        <Text style={styles.buttonText}>Actualizar Contraseña</Text>
-      </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Nueva Contraseña</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ingresa tu nueva contraseña"
+            value={newPassword}
+            onChangeText={setNewPassword}
+            secureTextEntry
+            placeholderTextColor="#999"
+          />
+        </View>
 
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.backText}>Volver</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.updateButton} onPress={handleResetPassword}>
+          <Text style={styles.buttonText}>Actualizar Contraseña</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={styles.backText}>Volver</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.bottomShape} />
     </View>
   );
 };
@@ -64,38 +80,70 @@ export default ForgotPasswordScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f2f2f2',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  input: {
-    width: '100%',
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    marginBottom: 10,
     backgroundColor: '#fff',
   },
-  button: {
-    backgroundColor: '#333',
-    padding: 10,
-    borderRadius: 10,
-    width: '100%',
-    alignItems: 'center',
+  topShape: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: '60%',
+    height: '22%',
+    backgroundColor: '#2B8C96',
+    borderBottomLeftRadius: 110,
+  },
+  bottomShape: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: '60%',
+    height: '20%',
+    backgroundColor: '#2B8C96',
+    borderTopRightRadius: 110,
+  },
+  content: {
+    flex: 1,
+    padding: 35,
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 40,
+    color: '#333',
+  },
+  inputContainer: {
+    marginBottom: 15,
+  },
+  inputLabel: {
+    marginBottom: 13,
+    color: '#333',
+    fontWeight: '500',
+  },
+  input: {
+    backgroundColor: '#F5F5F5',
+    padding: 17,
+    borderRadius: 15,
+    color: '#333',
+  },
+  updateButton: {
+    left: 70,
+    backgroundColor: '#333333',
+    padding: 13,
+    borderRadius: 18,
+    marginBottom: 20,
+    width: '60%',
+    marginTop: 20,
   },
   buttonText: {
     color: '#fff',
-    fontWeight: 'bold',
+    textAlign: 'center',
+    fontWeight: '600',
+    fontSize: 16,
   },
   backText: {
-    color: '#007AFF',
-    marginTop: 15,
+    color: '#2B8C96',
+    textAlign: 'center',
+    fontSize: 16,
   },
 });

@@ -105,127 +105,139 @@ useEffect(() => {
 }, [loadStudentData]);
 
   return (
-    <View style={{ flex: 1 }}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 120 }}>
-        <View style={styles.container}>
-          {/* Header */}
-          <View style={styles.studentHeader}>
-  <View style={styles.profileWrapper}>
-    {studentInfo?.profilePicture ? (
-      <Image source={{ uri: studentInfo.profilePicture }} style={styles.profileImage} />
-    ) : (
-      <View style={styles.iconPlaceholder}>
-        <MaterialIcons name="person" size={40} color="#888" />
-      </View>
-    )}
-  </View>
   <View style={{ flex: 1 }}>
-    <Text style={styles.studentName}>{studentInfo?.name || 'Estudiante'}</Text>
-    <Text style={[styles.studentLevel, { color: levelColors[studentInfo?.lupeLevel] || '#999' }]}>
-      Nivel: {studentInfo?.lupeLevel || 'Desconocido'}
-    </Text>
-  </View>
-  <View style={styles.averageBadge}>
-    <Text style={styles.averageValue}>{average}</Text>
-  </View>
-</View>
+    <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 120 }}>
+      <View style={styles.topHeader}>
+        <View style={styles.topShape} />
+        <Text style={styles.topHeaderTitle}>Historial de progreso</Text>
 
-
-          {/* Filtros */}
-          <View style={styles.filterContainer}>
-            <TouchableOpacity
-              style={[styles.filterButton, filter === 'week' && styles.activeButton]}
-              onPress={() => setFilter('week')}>
-              <Text style={[styles.filterText, filter === 'week' && styles.activeText]}>Esta semana</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.filterButton, filter === 'month' && styles.activeButton]}
-              onPress={() => setFilter('month')}>
-              <Text style={[styles.filterText, filter === 'month' && styles.activeText]}>Este mes</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.filterButton, filter === 'year' && styles.activeButton]}
-              onPress={() => setFilter('year')}>
-              <Text style={[styles.filterText, filter === 'year' && styles.activeText]}>Este año</Text>
-            </TouchableOpacity>
+        <View style={styles.studentInfoRow}>
+          <View style={styles.profileWrapper}>
+            {studentInfo?.profilePicture ? (
+              <Image
+                source={{ uri: studentInfo.profilePicture }}
+                style={styles.profileImage}
+              />
+            ) : (
+              <View style={styles.iconPlaceholder}>
+                <MaterialIcons name="person" size={40} color="#888" />
+              </View>
+            )}
           </View>
 
-          {filter === 'year' && (
-            <View style={styles.yearContainer}>
-              <Text style={styles.filterText}>Año:</Text>
-              <Picker
-                selectedValue={yearFilter}
-                style={styles.picker}
-                onValueChange={itemValue => setYearFilter(itemValue)}>
-                <Picker.Item label="2025" value={2025} />
-              </Picker>
-            </View>
-          )}
+          <View style={styles.nameAndLevel}>
+            <Text style={styles.studentName}>{studentInfo?.name || 'Estudiante'}</Text>
+            <Text
+              style={[
+                styles.studentLevel,
+                { color: levelColors[studentInfo?.lupeLevel] || '#999' },
+              ]}>
+              Nivel: {studentInfo?.lupeLevel || 'Desconocido'}
+            </Text>
+          </View>
 
-          <View style={styles.levelPickerContainer}>
-            <Text style={styles.filterText}>Nivel:</Text>
+          <View style={styles.averageBadge}>
+            <Text style={styles.averageValue}>{average}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.container}>
+        {/* Filtros */}
+        <View style={styles.filterContainer}>
+          <TouchableOpacity
+            style={[styles.filterButton, filter === 'week' && styles.activeButton]}
+            onPress={() => setFilter('week')}>
+            <Text style={[styles.filterText, filter === 'week' && styles.activeText]}>Esta semana</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, filter === 'month' && styles.activeButton]}
+            onPress={() => setFilter('month')}>
+            <Text style={[styles.filterText, filter === 'month' && styles.activeText]}>Este mes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, filter === 'year' && styles.activeButton]}
+            onPress={() => setFilter('year')}>
+            <Text style={[styles.filterText, filter === 'year' && styles.activeText]}>Este año</Text>
+          </TouchableOpacity>
+        </View>
+
+        {filter === 'year' && (
+          <View style={styles.yearContainer}>
+            <Text style={styles.filterText}>Año:</Text>
             <Picker
-              selectedValue={levelFilter}
+              selectedValue={yearFilter}
               style={styles.picker}
-              onValueChange={itemValue => setLevelFilter(itemValue)}>
-              <Picker.Item label="Amarillo" value="Amarillo" />
-              <Picker.Item label="Azul" value="Azul" />
-              <Picker.Item label="Rojo" value="Rojo" />
+              onValueChange={itemValue => setYearFilter(itemValue)}>
+              <Picker.Item label="2025" value={2025} />
             </Picker>
           </View>
+        )}
 
-          {/* Gráfica general */}
-          <Text style={styles.sectionTitle}>Historial del progreso</Text>
-          {loading ? (
-            <ActivityIndicator size="large" color="#40CDE0" />
-          ) : chartData && chartData.fechas.length > 0 ? (
-            <BarChart
-              data={{
-                labels: chartData.fechas,
-                datasets: [{ data: chartData.promedios }],
-              }}
-              width={screenWidth - 40}
-              height={280}
-              chartConfig={{
-                backgroundGradientFrom: '#fff',
-                backgroundGradientTo: '#fff',
-                decimalPlaces: 2,
-                color: (opacity = 1) => `rgba(64, 205, 224, ${opacity})`,
-                labelColor: () => '#000',
-                barPercentage: 0.6,
-              }}
-              style={{ marginBottom: 20 }}
-              fromZero
-              showValuesOnTopOfBars
-              verticalLabelRotation={30}
-            />
-          ) : (
-            <Text style={styles.noData}>No hay evaluaciones en este rango.</Text>
-          )}
-
-          {/* Imagen y comentarios */}
-          {lastImage ? (
-            <Image source={{ uri: lastImage }} style={styles.image} resizeMode="contain" />
-          ) : null}
-
-          <Text style={styles.commentTitle}>Comentario última clase:</Text>
-          <Text style={styles.commentText}>{lastComment || 'No hay comentarios.'}</Text>
-
-          {generalImage ? (
-            <Image source={{ uri: generalImage }} style={styles.image} resizeMode="contain" />
-          ) : null}
-
-          <Text style={styles.commentTitle}>Comentario general:</Text>
-          <Text style={styles.commentText}>{generalComment || 'No hay comentarios generales.'}</Text>
+        <View style={styles.levelPickerContainer}>
+          <Text style={styles.filterText}>Nivel:</Text>
+          <Picker
+            selectedValue={levelFilter}
+            style={styles.picker}
+            onValueChange={itemValue => setLevelFilter(itemValue)}>
+            <Picker.Item label="Amarillo" value="Amarillo" />
+            <Picker.Item label="Azul" value="Azul" />
+            <Picker.Item label="Rojo" value="Rojo" />
+          </Picker>
         </View>
-      </ScrollView>
 
-      <Navbar
-        navigateToHome={() => navigation.navigate('StudentDashboard')}
-        navigateToProfile={() => navigation.navigate('UserProfileScreen', { userType: 'student' })}
-      />
-    </View>
-  );
+        {/* Gráfica general */}
+        <Text style={styles.sectionTitle}>Historial del progreso</Text>
+        {loading ? (
+          <ActivityIndicator size="large" color="#40CDE0" />
+        ) : chartData && chartData.fechas.length > 0 ? (
+          <BarChart
+            data={{
+              labels: chartData.fechas,
+              datasets: [{ data: chartData.promedios }],
+            }}
+            width={screenWidth - 40}
+            height={280}
+            chartConfig={{
+              backgroundGradientFrom: '#fff',
+              backgroundGradientTo: '#fff',
+              decimalPlaces: 2,
+              color: (opacity = 1) => `rgba(64, 205, 224, ${opacity})`,
+              labelColor: () => '#000',
+              barPercentage: 0.6,
+            }}
+            style={{ marginBottom: 20 }}
+            fromZero
+            showValuesOnTopOfBars
+            verticalLabelRotation={30}
+          />
+        ) : (
+          <Text style={styles.noData}>No hay evaluaciones en este rango.</Text>
+        )}
+
+        {/* Imagen y comentarios */}
+        {lastImage ? (
+          <Image source={{ uri: lastImage }} style={styles.image} resizeMode="contain" />
+        ) : null}
+
+        <Text style={styles.commentTitle}>Comentario última clase:</Text>
+        <Text style={styles.commentText}>{lastComment || 'No hay comentarios.'}</Text>
+
+        {generalImage ? (
+          <Image source={{ uri: generalImage }} style={styles.image} resizeMode="contain" />
+        ) : null}
+
+        <Text style={styles.commentTitle}>Comentario general:</Text>
+        <Text style={styles.commentText}>{generalComment || 'No hay comentarios generales.'}</Text>
+      </View>
+    </ScrollView>
+
+    <Navbar
+      navigateToHome={() => navigation.navigate('StudentDashboard')}
+      navigateToProfile={() => navigation.navigate('UserProfileScreen', { userType: 'student' })}
+    />
+  </View>
+);
 };
 
 const styles = StyleSheet.create({
@@ -241,11 +253,17 @@ const styles = StyleSheet.create({
   studentLevel: { fontSize: 16, fontWeight: 'bold', color: '#999' },
   averageBadge: {
     backgroundColor: '#FF6F61',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+  borderRadius: 18,
+  paddingHorizontal: 14,
+  paddingVertical: 6,
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginLeft: 10,
+
   },
-  averageValue: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  averageValue: { color: '#fff',
+  fontSize: 16,
+  fontWeight: 'bold', },
   filterContainer: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 },
   filterButton: {
     paddingVertical: 10,
@@ -299,6 +317,42 @@ iconPlaceholder: {
   backgroundColor: '#ddd',
   alignItems: 'center',
   justifyContent: 'center',
+},
+topHeader: {
+  backgroundColor: '#2B8C96',
+  paddingVertical: 30,
+  paddingHorizontal: 20,
+  position: 'relative',
+  borderBottomLeftRadius: 30,
+  borderBottomRightRadius: 30,
+  marginBottom: 10,
+},
+topShape: {
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  width: '40%',
+  height: '100%',
+  backgroundColor: '#236B73',
+  borderBottomLeftRadius: 60,
+},
+topHeaderTitle: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  color: '#fff',
+  marginBottom: 20,
+  zIndex: 1,
+},
+studentInfoRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  zIndex: 1,
+},
+nameAndLevel: {
+  flex: 1,
+  justifyContent: 'center',
+  marginLeft: 10,
 },
 
 });

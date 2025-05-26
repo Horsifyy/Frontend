@@ -74,8 +74,8 @@ const StudentDashboard = () => {
       const lastEvalResponse = await fetch(
         `${API_URL}/api/evaluations/last/${currentUser.uid}`,
         {
-          headers: { Authorization: `Bearer ${idToken}` },
-        }
+          headers: {Authorization: `Bearer ${idToken}`},
+        },
       );
       const lastEval = await lastEvalResponse.json();
 
@@ -91,7 +91,7 @@ const StudentDashboard = () => {
   };
 
   const navigateToPerformance = () => {
-   navigation.navigate('LastReportScreen');
+    navigation.navigate('LastReportScreen');
   };
 
   const navigateToRewards = () => {
@@ -112,31 +112,33 @@ const StudentDashboard = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
+      <StatusBar backgroundColor="#2B8C96" barStyle="light-content" />
+
       <View style={styles.header}>
+        <View style={styles.topShape} />
         {loading ? (
-          <ActivityIndicator size="large" color="#2B8C96" />
+          <ActivityIndicator size="large" color="#ffffff" />
         ) : (
           <>
             <View style={styles.profilePicContainer}>
               {studentInfo?.profilePicture ? (
                 <Image
-                  source={{ uri: studentInfo.profilePicture }}
+                  source={{uri: studentInfo.profilePicture}}
                   style={styles.profileImage}
                 />
               ) : (
-                <Icon name="account-circle" size={60} color="#999" />
+                <Icon name="account-circle" size={60} color="#fff" />
               )}
             </View>
 
             <View style={styles.greetingContainer}>
               <Text style={styles.greeting}>
-                Hola, {studentInfo?.name || 'Estudiante'}
+                ¡Hola, {studentInfo?.name || 'Estudiante'}!
               </Text>
               <Text
                 style={[
                   styles.level,
-                  {color: levelColors[studentInfo?.lupeLevel] || '#999'},
+                  {color: levelColors[studentInfo?.lupeLevel] || '#FFC107'},
                 ]}>
                 Nivel: {studentInfo?.lupeLevel || 'Desconocido'}
               </Text>
@@ -151,39 +153,41 @@ const StudentDashboard = () => {
             style={[styles.card, styles.performanceCard]}
             onPress={navigateToPerformance}
             activeOpacity={0.8}>
-            <View
-              style={[styles.iconContainer, styles.performanceIconContainer]}>
-              <Icon name="fire" size={30} color="#fff" />
+            <View style={styles.iconContainer}>
+              <Icon name="fire" size={40} color="#fff" />
             </View>
             <Text style={styles.scoreText}>
               {averageScore !== null ? averageScore.toFixed(2) : '--'}
             </Text>
             <Text style={styles.cardLabel}>Desempeño</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={[styles.card, styles.rewardsCard]}
             onPress={navigateToRewards}
             activeOpacity={0.8}>
-            <View style={[styles.iconContainer, styles.rewardsIconContainer]}>
-              <Icon name="target" size={30} color="#fff" />
+            <View style={styles.iconContainer}>
+              <Icon name="gift" size={35} color="#fff" />
             </View>
             <Text style={styles.cardTitle}>Recompensas</Text>
             <Text style={styles.cardTitle}>y beneficios</Text>
           </TouchableOpacity>
         </View>
+
         <TouchableOpacity
-          style={[styles.card, styles.scheduleCard, styles.fullWidthCard]}
+          style={[styles.card, styles.scheduleCard]}
           onPress={navigateToSchedule}
           activeOpacity={0.8}>
-          <View style={[styles.iconContainer, styles.scheduleIconContainer]}>
-            <Icon name="calendar" size={30} color="#fff" />
+          <View style={styles.iconContainer}>
+            <Icon name="calendar" size={35} color="#fff" />
           </View>
           <View style={styles.scheduleTextContainer}>
             <Text style={styles.scheduleTitle}>Programación</Text>
-            <Text style={styles.scheduleTitle}>de Clases.</Text>
+            <Text style={styles.scheduleTitle}>de Clases</Text>
           </View>
         </TouchableOpacity>
       </View>
+
       <Navbar
         navigateToHome={navigateToHome}
         navigateToProfile={navigateToProfile}
@@ -193,21 +197,39 @@ const StudentDashboard = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: '#f5f5f5'},
+  container: {flex: 1, backgroundColor: '#F5F5F5'},
   header: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: '#ffffff',
+    paddingVertical: 40,
+    backgroundColor: '#2B8C96',
+    position: 'relative',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    minHeight: 140,
+  },
+
+  topShape: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: '50%',
+    height: '100%',
+    backgroundColor: '#236B73',
+    borderBottomLeftRadius: 60,
   },
   profilePicContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 90,
+    height: 90,
+    borderRadius: 30,
     overflow: 'hidden',
-    marginRight: 15,
+    marginRight: 25,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   profileImage: {
     width: '100%',
@@ -215,41 +237,61 @@ const styles = StyleSheet.create({
   },
   greetingContainer: {
     flexDirection: 'column',
-  },
-  greeting: {fontSize: 24, fontWeight: 'bold', color: '#333333'},
-  level: {fontSize: 16},
-  cardsContainer: {flex: 1, padding: 15},
-  row: {flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15},
-  card: {
-    borderRadius: 15,
-    padding: 15,
     justifyContent: 'center',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    zIndex: 1,
   },
-  performanceCard: {backgroundColor: '#ff7b7b', width: '48%', height: 150, alignItems: 'center'},
-  rewardsCard: {backgroundColor: '#4abebd', width: '48%', height: 150, justifyContent: 'center', alignItems: 'flex-start'},
-  scheduleCard: {backgroundColor: '#4abebd', flexDirection: 'row', alignItems: 'center', height: 100},
-  fullWidthCard: {width: '100%'},
-  iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+
+  greeting: {fontSize: 24, fontWeight: 'bold', color: '#ffffff'},
+  level: {fontSize: 20, fontWeight: '600', marginTop: 10},
+  cardsContainer: {flex: 1, padding: 20},
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
-  performanceIconContainer: {backgroundColor: 'rgba(255, 255, 255, 0.3)'},
-  rewardsIconContainer: {backgroundColor: 'rgba(255, 255, 255, 0.3)', marginBottom: 5},
-  scheduleIconContainer: {backgroundColor: 'rgba(255, 255, 255, 0.3)', marginRight: 15},
-  scoreText: {fontSize: 32, fontWeight: 'bold', color: '#ffffff'},
-  cardLabel: {fontSize: 18, color: '#ffffff'},
-  cardTitle: {fontSize: 18, fontWeight: 'bold', color: '#ffffff'},
-  scheduleTextContainer: {flexDirection: 'column'},
-  scheduleTitle: {fontSize: 18, fontWeight: 'bold', color: '#ffffff'},
+  performanceCard: {
+    backgroundColor: '#FF6B6B',
+    width: '48%',
+    height: 215,
+  },
+  rewardsCard: {
+    backgroundColor: '#2B8C96',
+    width: '48%',
+    height: 215,
+  },
+  scheduleCard: {
+    backgroundColor: '#2B8C96',
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 170,
+    width: '100%',
+  },
+  iconContainer: {
+    width: 80,
+    height: 70,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  scoreText: {fontSize: 35, fontWeight: 'bold', color: '#ffffff'},
+  cardLabel: {fontSize: 20, color: '#ffffff', fontWeight: '600'},
+  cardTitle: {fontSize: 19, fontWeight: 'bold', color: '#ffffff'},
+  scheduleTextContainer: {marginLeft: 20},
+  scheduleTitle: {fontSize: 22, fontWeight: 'bold', color: '#ffffff'},
 });
 
 export default StudentDashboard;

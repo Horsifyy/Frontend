@@ -354,6 +354,36 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 8,
   },
+ topHeader: {
+  backgroundColor: '#2B8C96',
+  paddingVertical: 30,
+  paddingHorizontal: 20,
+  position: 'relative',
+  borderBottomLeftRadius: 30,
+  borderBottomRightRadius: 30,
+  marginBottom: 10,
+},
+topShape: {
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  width: '50%',
+  height: '100%',
+  backgroundColor: '#236B73',
+  borderBottomLeftRadius: 60,
+},
+topHeaderTitle: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  color: '#fff',
+  marginBottom: 20,
+  zIndex: 1,
+},
+studentInfo: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  zIndex: 1,
+},
 });
 
 export default GetMetricsScreen;
