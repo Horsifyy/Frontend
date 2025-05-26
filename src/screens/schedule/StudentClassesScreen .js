@@ -126,7 +126,7 @@ const StudentClassesScreen = () => {
       )}
       <Navbar
         navigateToHome={() => navigation.navigate('StudentDashboard')}
-        navigateToProfile={() => navigation.navigate('StudentProfile')}
+        navigateToProfile={() => navigation.navigate('UserProfileScreen', { userType: 'student' })}
       />
     </View>
   );

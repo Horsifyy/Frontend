@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StatusBar,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
 import Navbar from '../navigation/Navbar';
 
 const TeacherDashboard = ({route, navigation}) => {
@@ -19,6 +18,7 @@ const TeacherDashboard = ({route, navigation}) => {
       title: 'Editar nivel del estudiante',
       color: '#c8eff5',
       textColor: '#333',
+      screen: 'EditStudentLevel',
     },
     {
       id: 2,
@@ -78,7 +78,7 @@ const TeacherDashboard = ({route, navigation}) => {
       </View>
       <Navbar
         navigateToHome={() => navigation.navigate('TeacherHome')}
-        navigateToProfile={() => navigation.navigate('TeacherProfileScreen')}
+        navigateToProfile={() => navigation.navigate('UserProfileScreen', { userType: 'teacher' })}
       />
     </SafeAreaView>
   );

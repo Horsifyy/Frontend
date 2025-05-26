@@ -7,10 +7,8 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
 import {API_URL} from '../../api/config';
 import Navbar from '../navigation/Navbar';
@@ -108,7 +106,7 @@ const StudentList = ({navigation}) => {
       </View>
       <Navbar
         navigateToHome={() => navigation.navigate('TeacherHome')}
-        navigateToProfile={() => console.log('Navegando a Perfil')}
+        navigateToProfile={() => navigation.navigate('UserProfileScreen', { userType: 'teacher' })}
       />
     </SafeAreaView>
   );

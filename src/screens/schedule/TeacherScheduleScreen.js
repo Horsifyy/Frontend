@@ -5,7 +5,6 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
 } from 'react-native';
@@ -84,7 +83,7 @@ const TeacherSchedule = ({ navigation }) => {
 
       <Navbar
         navigateToHome={() => navigation.navigate('TeacherHome')}
-        navigateToProfile={() => navigation.navigate('TeacherProfile')}
+        navigateToProfile={() =>  navigation.navigate('UserProfileScreen', { userType: 'teacher' })}
       />
     </SafeAreaView>
   );

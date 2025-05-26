@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState, useCallback  } from 'react';
 import {
   View,
   Text,
@@ -8,332 +8,299 @@ import {
   Alert,
   TouchableOpacity,
   ScrollView,
+  Image,
 } from 'react-native';
-import {BarChart} from 'react-native-chart-kit';
+import { BarChart } from 'react-native-chart-kit';
 import auth from '@react-native-firebase/auth';
-import {API_URL} from '../../api/config';
+import { API_URL } from '../../api/config';
 import Navbar from '../navigation/Navbar';
-import {useRoute, useNavigation} from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
 
 const screenWidth = Dimensions.get('window').width;
 
+const levelColors = {
+  Amarillo: '#FFC107',
+  Azul: '#2196F3',
+  Rojo: '#F44336',
+};
+
 const ProgressReportScreen = () => {
-  const navigation = useNavigation(); // Usa esto para obtener el objeto de navegación
+  const navigation = useNavigation();
   const route = useRoute();
   const studentInfo = route.params?.studentData;
+
   const [filter, setFilter] = useState('month');
-  const [yearFilter] = useState(new Date().getFullYear());
-  const [levelFilter, setLevelFilter] = useState('Amarillo');
+  const [yearFilter, setYearFilter] = useState(new Date().getFullYear());
+  const [levelFilter, setLevelFilter] = useState(studentInfo?.lupeLevel || 'Amarillo');
+  const [loading, setLoading] = useState(false);
   const [chartData, setChartData] = useState(null);
   const [average, setAverage] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
+  const [evaluations, setEvaluations] = useState([]);
+  const [lastComment, setLastComment] = useState('');
+  const [lastImage, setLastImage] = useState('');
+  const [generalComment, setGeneralComment] = useState('');
+  const [generalImage, setGeneralImage] = useState('');
 
-  useEffect(() => {
-    const fetchStudentInfoAndHistory = async () => {
-      try {
-        setLoading(true);
-        const currentUser = auth().currentUser;
-        const idToken = await currentUser.getIdToken(true);
+  const loadStudentData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const currentUser = auth().currentUser;
+      const idToken = await currentUser.getIdToken(true);
 
-        // Obtener última evaluación (como resumen)
-        const lastEvalResponse = await fetch(
-          `${API_URL}/api/evaluations/last/${currentUser.uid}`,
-          {
-            headers: {
-              Authorization: `Bearer ${idToken}`,
-            },
-          },
-        );
+      // Última evaluación con extras
+      const lastRes = await fetch(`${API_URL}/api/evaluations/lastWithExtras/${currentUser.uid}`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      const lastData = await lastRes.json();
+      const ratings = lastData.lastEvaluation?.ratings || {};
 
-        const lastEval = await lastEvalResponse.json();
+      setAverage(parseFloat(lastData.lastEvaluation?.averageScore || 0));
+      setLastComment(lastData.lastEvaluation?.comments || '');
+      setLastImage(lastData.lastEvaluation?.imageUrl || '');
+      setGeneralComment(lastData.historialExtras?.comentarios || '');
+      setGeneralImage(lastData.historialExtras?.imagenUrl || '');
 
-        if (!showHistory) {
-          setAverage(parseFloat(lastEval.averageScore || '0'));
-          const ratings = lastEval.ratings || {};
-
-          setChartData({
-            labels: Object.keys(ratings),
-            datasets: [{data: Object.values(ratings).map(r => parseFloat(r))}],
-          });
+      // Historial completo
+      const histRes = await fetch(
+        `${API_URL}/api/evaluations/history/${currentUser.uid}?range=${filter}&year=${yearFilter}&level=${levelFilter}`,
+        {
+          headers: { Authorization: `Bearer ${idToken}` },
         }
+      );
+      const histData = await histRes.json();
 
-        // Obtener historial si se requiere
-        if (showHistory) {
-          const currentUser = auth().currentUser;
-          const studentId = currentUser?.uid;
-          const response = await fetch(
-            `${API_URL}/api/evaluations/history/${studentId}?range=${filter}&year=${yearFilter}&level=${levelFilter}`,
-            {
-              method: 'GET',
-              headers: {
-                Authorization: `Bearer ${idToken}`,
-              },
-            },
-          );
-          const data = await response.json();
-          const evaluaciones = Array.isArray(data) ? data : [];
-          const fechas = [];
-          const promedios = [];
+      setEvaluations(histData);
 
-          evaluaciones.forEach(ev => {
-            let fecha = '—';
-            if (ev.createdAt) {
-              let dateObj;
-              if (typeof ev.createdAt === 'string') {
-                dateObj = new Date(ev.createdAt);
-              } else if (ev.createdAt.seconds) {
-                dateObj = new Date(ev.createdAt.seconds * 1000);
-              }
-              if (dateObj && !isNaN(dateObj)) {
-                fecha = dateObj.toLocaleDateString('es-CO', {
-                  day: '2-digit',
-                  month: 'short',
-                });
-              }
-            }
-            fechas.push(fecha);
-            promedios.push(parseFloat(ev.averageScore || '0'));
-          });
+      const fechas = [];
+      const promedios = [];
 
-          const avg =
-            promedios.length > 0
-              ? (
-                  promedios.reduce((acc, val) => acc + val, 0) /
-                  promedios.length
-                ).toFixed(2)
-              : 0;
-
-          setAverage(avg);
-          setChartData({fechas, promedios});
+      histData.forEach(ev => {
+        let fecha = '—';
+        if (ev.createdAt) {
+          const dateObj = typeof ev.createdAt === 'string'
+            ? new Date(ev.createdAt)
+            : new Date(ev.createdAt.seconds * 1000);
+          if (!isNaN(dateObj)) {
+            fecha = dateObj.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+          }
         }
-      } catch (err) {
-        console.error(err);
-        Alert.alert('Error', err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+        fechas.push(fecha);
+        promedios.push(parseFloat(ev.averageScore || '0'));
+      });
 
-    fetchStudentInfoAndHistory();
-  }, [showHistory, filter, yearFilter, levelFilter]);
+      setChartData({ fechas, promedios });
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Error', err.message);
+    } finally {
+      setLoading(false);
+    }
+}, [filter, yearFilter, levelFilter]);
+
+useEffect(() => {
+  loadStudentData();
+}, [loadStudentData]);
 
   return (
-    <View style={{flex: 1}}>
-      <ScrollView style={styles.scrollView}>
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 120 }}>
         <View style={styles.container}>
+          {/* Header */}
           <View style={styles.studentHeader}>
-            <View style={{flex: 1}}>
-              <Text style={styles.studentName}>
-                {studentInfo?.name || 'Estudiante'}
-              </Text>
-              <Text style={styles.studentLevel}>
-                Nivel: {studentInfo?.lupeLevel || 'Desconocido'}
-              </Text>
-            </View>
-            <View style={styles.averageBadge}>
-              <Text style={styles.averageValue}>{average}</Text>
-            </View>
+  <View style={styles.profileWrapper}>
+    {studentInfo?.profilePicture ? (
+      <Image source={{ uri: studentInfo.profilePicture }} style={styles.profileImage} />
+    ) : (
+      <View style={styles.iconPlaceholder}>
+        <MaterialIcons name="person" size={40} color="#888" />
+      </View>
+    )}
+  </View>
+  <View style={{ flex: 1 }}>
+    <Text style={styles.studentName}>{studentInfo?.name || 'Estudiante'}</Text>
+    <Text style={[styles.studentLevel, { color: levelColors[studentInfo?.lupeLevel] || '#999' }]}>
+      Nivel: {studentInfo?.lupeLevel || 'Desconocido'}
+    </Text>
+  </View>
+  <View style={styles.averageBadge}>
+    <Text style={styles.averageValue}>{average}</Text>
+  </View>
+</View>
+
+
+          {/* Filtros */}
+          <View style={styles.filterContainer}>
+            <TouchableOpacity
+              style={[styles.filterButton, filter === 'week' && styles.activeButton]}
+              onPress={() => setFilter('week')}>
+              <Text style={[styles.filterText, filter === 'week' && styles.activeText]}>Esta semana</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.filterButton, filter === 'month' && styles.activeButton]}
+              onPress={() => setFilter('month')}>
+              <Text style={[styles.filterText, filter === 'month' && styles.activeText]}>Este mes</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.filterButton, filter === 'year' && styles.activeButton]}
+              onPress={() => setFilter('year')}>
+              <Text style={[styles.filterText, filter === 'year' && styles.activeText]}>Este año</Text>
+            </TouchableOpacity>
           </View>
 
-          {showHistory && (
-            <View style={styles.filterContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.filterButton,
-                  filter === 'week' && styles.activeButton,
-                ]}
-                onPress={() => setFilter('week')}>
-                <Text
-                  style={[
-                    styles.filterText,
-                    filter === 'week' && styles.activeText,
-                  ]}>
-                  Esta semana
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.filterButton,
-                  filter === 'month' && styles.activeButton,
-                ]}
-                onPress={() => setFilter('month')}>
-                <Text
-                  style={[
-                    styles.filterText,
-                    filter === 'month' && styles.activeText,
-                  ]}>
-                  Este mes
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.filterButton,
-                  filter === 'year' && styles.activeButton,
-                ]}
-                onPress={() => setFilter('year')}>
-                <Text
-                  style={[
-                    styles.filterText,
-                    filter === 'year' && styles.activeText,
-                  ]}>
-                  Este año
-                </Text>
-              </TouchableOpacity>
+          {filter === 'year' && (
+            <View style={styles.yearContainer}>
+              <Text style={styles.filterText}>Año:</Text>
+              <Picker
+                selectedValue={yearFilter}
+                style={styles.picker}
+                onValueChange={itemValue => setYearFilter(itemValue)}>
+                <Picker.Item label="2025" value={2025} />
+              </Picker>
             </View>
           )}
 
+          <View style={styles.levelPickerContainer}>
+            <Text style={styles.filterText}>Nivel:</Text>
+            <Picker
+              selectedValue={levelFilter}
+              style={styles.picker}
+              onValueChange={itemValue => setLevelFilter(itemValue)}>
+              <Picker.Item label="Amarillo" value="Amarillo" />
+              <Picker.Item label="Azul" value="Azul" />
+              <Picker.Item label="Rojo" value="Rojo" />
+            </Picker>
+          </View>
+
+          {/* Gráfica general */}
           <Text style={styles.sectionTitle}>Historial del progreso</Text>
-
           {loading ? (
-            <ActivityIndicator
-              size="large"
-              color="#40CDE0"
-              style={{marginTop: 20}}
+            <ActivityIndicator size="large" color="#40CDE0" />
+          ) : chartData && chartData.fechas.length > 0 ? (
+            <BarChart
+              data={{
+                labels: chartData.fechas,
+                datasets: [{ data: chartData.promedios }],
+              }}
+              width={screenWidth - 40}
+              height={280}
+              chartConfig={{
+                backgroundGradientFrom: '#fff',
+                backgroundGradientTo: '#fff',
+                decimalPlaces: 2,
+                color: (opacity = 1) => `rgba(64, 205, 224, ${opacity})`,
+                labelColor: () => '#000',
+                barPercentage: 0.6,
+              }}
+              style={{ marginBottom: 20 }}
+              fromZero
+              showValuesOnTopOfBars
+              verticalLabelRotation={30}
             />
-          ) : chartData && (chartData.labels || chartData.fechas) ? (
-            <View style={styles.chartContainer}>
-              <BarChart
-                data={{
-                  labels: chartData.labels || chartData.fechas,
-                  datasets: [
-                    {
-                      data:
-                        chartData.datasets?.[0]?.data || chartData.promedios,
-                    },
-                  ],
-                }}
-                width={screenWidth - 40}
-                height={280}
-                chartConfig={{
-                  backgroundGradientFrom: '#fff',
-                  backgroundGradientTo: '#fff',
-                  decimalPlaces: 2,
-                  color: (opacity = 1) => `rgba(64, 205, 224, ${opacity})`,
-                  labelColor: () => '#000',
-                  barPercentage: 0.6,
-                }}
-                fromZero
-                showValuesOnTopOfBars
-                verticalLabelRotation={30}
-              />
-            </View>
           ) : (
-            <Text style={styles.noData}>
-              No hay evaluaciones{' '}
-              {filter === 'month'
-                ? 'este mes'
-                : filter === 'week'
-                ? 'esta semana'
-                : 'este año'}
-              .
-            </Text>
+            <Text style={styles.noData}>No hay evaluaciones en este rango.</Text>
           )}
 
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() => setShowHistory(!showHistory)}>
-            <Text style={styles.toggleButtonText}>
-              {showHistory
-                ? 'Volver a última evaluación'
-                : 'Ver evaluaciones previas'}
-            </Text>
-          </TouchableOpacity>
+          {/* Imagen y comentarios */}
+          {lastImage ? (
+            <Image source={{ uri: lastImage }} style={styles.image} resizeMode="contain" />
+          ) : null}
+
+          <Text style={styles.commentTitle}>Comentario última clase:</Text>
+          <Text style={styles.commentText}>{lastComment || 'No hay comentarios.'}</Text>
+
+          {generalImage ? (
+            <Image source={{ uri: generalImage }} style={styles.image} resizeMode="contain" />
+          ) : null}
+
+          <Text style={styles.commentTitle}>Comentario general:</Text>
+          <Text style={styles.commentText}>{generalComment || 'No hay comentarios generales.'}</Text>
         </View>
       </ScrollView>
+
       <Navbar
         navigateToHome={() => navigation.navigate('StudentDashboard')}
-        navigateToProfile={() => navigation.navigate('StudentProfile')}
+        navigateToProfile={() => navigation.navigate('UserProfileScreen', { userType: 'student' })}
       />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
-  container: {
-    padding: 20,
-    paddingBottom: 80,
-  },
+  scrollView: { backgroundColor: '#F5F5F5' },
+  container: { padding: 20 },
   studentHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
   },
-  studentName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  studentLevel: {
-    fontSize: 16,
-    color: '#999',
-  },
+  studentName: { fontSize: 24, fontWeight: 'bold', color: '#333' },
+  studentLevel: { fontSize: 16, fontWeight: 'bold', color: '#999' },
   averageBadge: {
     backgroundColor: '#FF6F61',
     borderRadius: 20,
     paddingHorizontal: 15,
     paddingVertical: 10,
   },
-  averageValue: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
+  averageValue: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  filterContainer: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 },
+  filterButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: '#e0e0e0',
   },
+  activeButton: { backgroundColor: '#40CDE0' },
+  filterText: { fontSize: 16, color: '#555' },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginVertical: 15,
+    marginBottom: 15,
+    marginTop: 15,
   },
-  chartContainer: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 10,
-    elevation: 3,
+  noData: { textAlign: 'center', marginTop: 30, color: '#999', fontSize: 16 },
+  image: {
+    width: '100%',
+  height: 100,
+  borderRadius: 8,
+  marginBottom: 5,
   },
-  filterContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  commentTitle: { fontSize: 16, fontWeight: 'bold', marginTop: 10 },
+  commentText: { fontSize: 14, color: '#333', marginBottom: 10 },
+  yearContainer: { marginBottom: 10, paddingHorizontal: 10 },
+  levelPickerContainer: {
     marginBottom: 10,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 10,
+    elevation: 2,
   },
-  filterButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 20,
-    backgroundColor: '#e0e0e0',
-  },
-  activeButton: {
-    backgroundColor: '#40CDE0',
-  },
-  filterText: {
-    color: '#555',
-  },
-  activeText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  noData: {
-    textAlign: 'center',
-    marginTop: 30,
-    color: '#999',
-  },
-  toggleButton: {
-    backgroundColor: '#0075A2',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  toggleButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
-  },
+  picker: { width: '100%', height: 50 },
+  profileWrapper: {
+  width: 50,
+  height: 50,
+  borderRadius: 25,
+  overflow: 'hidden',
+  marginRight: 10,
+},
+profileImage: {
+  width: '100%',
+  height: '100%',
+  borderRadius: 25,
+},
+iconPlaceholder: {
+  width: '100%',
+  height: '100%',
+  borderRadius: 25,
+  backgroundColor: '#ddd',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
 });
 
 export default ProgressReportScreen;

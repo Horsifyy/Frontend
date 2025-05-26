@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import {BarChart} from 'react-native-chart-kit';
 import {useRoute, useNavigation} from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Ionicons';
 import Navbar from '../navigation/Navbar';
 
 const screenWidth = Dimensions.get('window').width;
@@ -19,7 +18,7 @@ const GetMetricsScreen = () => {
   const [chartData, setChartData] = useState(null);
   const route = useRoute();
   const navigation = useNavigation();
-  const {studentInfo, exercises, ratings, averageScore} = route.params; // Datos recibidos de la pantalla anterior
+  const {studentInfo, exercises, ratings, averageScore, imageUrl} = route.params;
 
   useEffect(() => {
     if (ratings && exercises) {
@@ -28,176 +27,168 @@ const GetMetricsScreen = () => {
   }, [ratings, exercises]);
 
   const generateEvaluationChart = (ratings, exercises) => {
-    // Extraemos las métricas y sus valores
     const metricsLabels = Object.keys(ratings);
     const metricsValues = Object.values(ratings).map(val => parseInt(val, 10));
 
     setChartData({
-      labels: metricsLabels, // Las métricas serán las etiquetas del gráfico
+      labels: metricsLabels,
       datasets: [
         {
-          data: metricsValues, // Los valores de calificación serán los datos
+          data: metricsValues,
           color: (opacity = 1) => `rgba(64, 205, 224, ${opacity})`,
         },
       ],
     });
   };
 
-  // Colores para los ejercicios (visual)
   const getExerciseColor = index => {
     const colors = ['#40CDE0', '#4CAF50', '#FFC107', '#FF9800', '#CCCCCC'];
     return colors[index % colors.length];
   };
 
+  const getLevelColor = (level) => {
+    switch (level?.toLowerCase()) {
+      case 'amarillo':
+        return '#FFC107';
+      case 'azul':
+        return '#2196F3';
+      case 'rojo':
+        return '#E53935';
+      default:
+        return '#666';
+    }
+  };
+
   return (
-    <ScrollView style={styles.scrollView}>
-      <View style={styles.container}>
-        {/* Header con información del estudiante */}
-        <View style={styles.headerContainer}>
-          <View style={styles.studentInfoContainer}>
-            <Text style={styles.studentName}>
-              {studentInfo?.name || 'Estudiante'}
-            </Text>
-            <View style={styles.levelContainer}>
-              <Text style={styles.levelLabel}>Nivel: </Text>
-              <Text style={styles.levelValue}>{studentInfo?.lupeLevel}</Text>
-            </View>
-          </View>
-
-          <View style={styles.averageBadge}>
-            <Text style={styles.averageValue}>{averageScore}</Text>
-          </View>
-          <View style={styles.profileImageContainer}>
-            <Image style={styles.profileImage} />
-          </View>
-        </View>
-
-        {/* Ejercicios realizados */}
-        <View style={styles.exercisesContainer}>
-          {exercises &&
-            exercises.map((exercise, index) => (
-              <View key={index} style={styles.exerciseItem}>
-                <View
-                  style={[
-                    styles.exerciseDot,
-                    {backgroundColor: getExerciseColor(index)},
-                  ]}
-                />
-                <Text style={styles.exerciseText}>{exercise}</Text>
+    <View style={{flex: 1}}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={{flexGrow: 1, padding: 20, paddingBottom: 100}}>
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.headerContainer}>
+            <View style={styles.studentInfoContainer}>
+              <Text style={styles.studentName}>
+                {studentInfo?.name || 'Estudiante'}
+              </Text>
+              <View style={styles.levelContainer}>
+                <Text style={styles.levelLabel}>Nivel: </Text>
+                <Text style={[styles.levelValue, {color: getLevelColor(studentInfo?.lupeLevel)}]}>
+                  {studentInfo?.lupeLevel}
+                </Text>
               </View>
-            ))}
-        </View>
+            </View>
 
-        {/* Título de visualización */}
-        <Text style={styles.sectionTitle}>Visualización del progreso</Text>
-
-        {/* Gráfico de barras con las métricas */}
-        {chartData && chartData.labels ? (
-          <View style={styles.chartContainer}>
-            <BarChart
-              data={{
-                labels: chartData.labels.map(label => {
-                  // Acortamos los nombres de las métricas para que quepan en el gráfico
-                  return label.length > 20
-                    ? label.substring(0, 17) + '...'
-                    : label;
-                }),
-                datasets: [{data: chartData.datasets[0].data}],
-              }}
-              width={screenWidth - 40}
-              height={350}
-              yAxisLabel=""
-              yAxisSuffix=""
-              chartConfig={{
-                backgroundGradientFrom: '#fff',
-                backgroundGradientTo: '#fff',
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(64, 205, 224, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                barPercentage: 0.7,
-                propsForBackgroundLines: {
-                  strokeDasharray: '',
-                  stroke: '#EDEDED',
-                },
-              }}
-              fromZero
-              showValuesOnTopOfBars
-              withInnerLines={true}
-              segments={5}
-              style={styles.chart}
-              verticalLabelRotation={30}
-            />
-            {/* Capas de colores para zonas */}
-            <View style={styles.chartOverlay}>
-              <View
-                style={[
-                  styles.chartZone,
-                  {
-                    backgroundColor: 'rgba(64, 205, 224, 0.15)',
-                    top: 0,
-                    height: '25%',
-                  },
-                ]}
-              />
-              <View
-                style={[
-                  styles.chartZone,
-                  {
-                    backgroundColor: 'rgba(76, 175, 80, 0.15)',
-                    top: '25%',
-                    height: '25%',
-                  },
-                ]}
-              />
-              <View
-                style={[
-                  styles.chartZone,
-                  {
-                    backgroundColor: 'rgba(255, 193, 7, 0.15)',
-                    top: '50%',
-                    height: '25%',
-                  },
-                ]}
-              />
-              <View
-                style={[
-                  styles.chartZone,
-                  {
-                    backgroundColor: 'rgba(255, 152, 0, 0.15)',
-                    top: '75%',
-                    height: '25%',
-                  },
-                ]}
-              />
+            <View style={styles.averageBadge}>
+              <Text style={styles.averageValue}>{averageScore}</Text>
+            </View>
+            <View style={styles.profileImageContainer}>
+              <Image style={styles.profileImage} />
             </View>
           </View>
-        ) : (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Cargando gráfica...</Text>
+
+          {/* Ejercicios */}
+          <View style={styles.exercisesContainer}>
+            {exercises &&
+              exercises.map((exercise, index) => (
+                <View key={index} style={styles.exerciseItem}>
+                  <View
+                    style={[
+                      styles.exerciseDot,
+                      {backgroundColor: getExerciseColor(index)},
+                    ]}
+                  />
+                  <Text style={styles.exerciseText}>{exercise}</Text>
+                </View>
+              ))}
           </View>
-        )}
 
-        {/* Sección de imagen de la clase */}
-        <View style={styles.classImageContainer}>
-          <Text style={styles.classImageText}>Imagen de la clase</Text>
+          <Text style={styles.sectionTitle}>Visualización del progreso</Text>
+
+          {/* Gráfico */}
+          {chartData && chartData.labels ? (
+            <View style={styles.chartContainer}>
+              <BarChart
+                data={{
+                  labels: chartData.labels.map(label =>
+                    label.length > 150 ? label.substring(0, 12) + '...' : label,
+                  ),
+                  datasets: [{data: chartData.datasets[0].data}],
+                }}
+                width={screenWidth - 50}
+                height={400}
+                yAxisLabel=""
+                yAxisSuffix=""
+                chartConfig={{
+                  backgroundGradientFrom: '#fff',
+                  backgroundGradientTo: '#fff',
+                  decimalPlaces: 0,
+                  color: (opacity = 1) => `rgba(64, 205, 224, ${opacity})`,
+                  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                  barPercentage: 0.6,
+                  propsForBackgroundLines: {
+                    strokeDasharray: '',
+                    stroke: '#EDEDED',
+                  },
+                }}
+                fromZero
+                showValuesOnTopOfBars
+                withInnerLines={true}
+                segments={5}
+                style={[styles.chart, {alignSelf: 'center'}]}
+                verticalLabelRotation={30}
+              />
+
+              <View style={styles.chartOverlay}>
+                <View style={[styles.chartZone, {backgroundColor: 'rgba(64, 205, 224, 0.15)', top: 0, height: '25%'}]} />
+                <View style={[styles.chartZone, {backgroundColor: 'rgba(76, 175, 80, 0.15)', top: '25%', height: '25%'}]} />
+                <View style={[styles.chartZone, {backgroundColor: 'rgba(255, 193, 7, 0.15)', top: '50%', height: '25%'}]} />
+                <View style={[styles.chartZone, {backgroundColor: 'rgba(255, 152, 0, 0.15)', top: '75%', height: '25%'}]} />
+              </View>
+            </View>
+          ) : (
+            <View style={styles.loadingContainer}>
+              <Text style={styles.loadingText}>Cargando gráfica...</Text>
+            </View>
+          )}
+
+          {/* Imagen */}
+          <View style={styles.classImageContainer}>
+            <Text style={styles.classImageText}>Imagen de la clase</Text>
+            {imageUrl ? (
+              <Image
+                source={{uri: imageUrl}}
+                style={styles.classImage}
+                resizeMode="contain"
+              />
+            ) : (
+              <Text style={{color: '#555', marginTop: 10}}>
+                No hay imagen disponible
+              </Text>
+            )}
+          </View>
+
+          {/* Botón */}
+          <TouchableOpacity
+            style={styles.previousEvalButton}
+            onPress={() =>
+              navigation.navigate('EvaluationHistory', {
+                studentInfo: studentInfo,
+              })
+            }>
+            <Text style={styles.previousEvalText}>Evaluaciones previas</Text>
+          </TouchableOpacity>
         </View>
+      </ScrollView>
 
-        {/* Botón de evaluaciones previas */}
-        <TouchableOpacity
-          style={styles.previousEvalButton}
-          onPress={() => {
-            navigation.navigate('EvaluationHistory', {
-              studentInfo: studentInfo, // envía la info del estudiante
-            });
-          }}>
-          <Text style={styles.previousEvalText}>Evaluaciones previas</Text>
-        </TouchableOpacity>
+      {/* Navbar fijo */}
+      <View style={{position: 'absolute', bottom: 0, left: 0, right: 0}}>
+        <Navbar
+          navigateToHome={() => navigation.navigate('TeacherHome')}
+          navigateToProfile={() => navigation.navigate('UserProfileScreen', { userType: 'teacher' })}
+        />
       </View>
-      <Navbar
-        navigateToHome={() => navigation.navigate('TeacherHome')}
-        navigateToProfile={() => navigation.navigate('TeacherProfileScreen')}
-      />
-    </ScrollView>
+    </View>
   );
 };
 
@@ -236,7 +227,6 @@ const styles = StyleSheet.create({
   levelValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFC107',
   },
   averageBadge: {
     width: 60,
@@ -331,19 +321,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#888',
   },
-  classImageContainer: {
-    height: 100,
-    backgroundColor: '#A9DEF9',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  classImageText: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#333',
-  },
   previousEvalButton: {
     backgroundColor: '#0075A2',
     borderRadius: 8,
@@ -358,6 +335,24 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     flex: 1,
     marginLeft: 10,
+  },
+  classImageContainer: {
+    backgroundColor: '#A9DEF9',
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  classImageText: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#333',
+    marginBottom: 12,
+  },
+  classImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
   },
 });
 

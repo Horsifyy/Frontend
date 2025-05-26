@@ -6,18 +6,13 @@ import {
   SafeAreaView,
   TouchableOpacity,
   StatusBar,
-  ActivityIndicator,
-  Alert
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import auth from '@react-native-firebase/auth';
-import { API_URL } from '../../api/config';
 import Navbar from '../navigation/Navbar';
 
 const TeacherHomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
 
-  // UseEffect para cargar cualquier dato necesario del backend (si aplica)
   useEffect(() => {
     setLoading(false); 
   }, []);
@@ -70,7 +65,7 @@ const TeacherHomeScreen = ({ navigation }) => {
 
       <Navbar
         navigateToHome={() => navigation.navigate('TeacherHome')}
-        navigateToProfile={() => navigation.navigate('TeacherProfileScreen')}
+        navigateToProfile={() => navigation.navigate('UserProfileScreen', { userType: 'teacher' })}
       />
     </SafeAreaView>
   );

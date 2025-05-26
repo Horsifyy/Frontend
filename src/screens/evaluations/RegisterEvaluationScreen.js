@@ -11,10 +11,13 @@ import {
   Alert,
   ActivityIndicator,
   Switch,
+  Image,
 } from 'react-native';
 import {useRoute, useNavigation} from '@react-navigation/native';
 import {API_URL} from '../../api/config';
 import Navbar from '../navigation/Navbar';
+import {launchImageLibrary, launchCamera} from 'react-native-image-picker'; // Añadido
+import storage from '@react-native-firebase/storage'; // Añadido para Firebase Storage
 
 const RegisterEvaluationScreen = () => {
   const {params} = useRoute();
@@ -29,6 +32,11 @@ const RegisterEvaluationScreen = () => {
     ratings: {}, // { "Label métrica": "1", ... }
     comments: '',
   });
+
+  // Estado para manejar la imagen
+  const [imageUri, setImageUri] = useState(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
 
   const studentInfo = {
     id: student.id || '',
@@ -110,10 +118,113 @@ const RegisterEvaluationScreen = () => {
     return true;
   };
 
+  // Función para seleccionar imagen de la galería
+  const selectImageFromGallery = () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.7, // calidad de la imagen (0 a 1)
+      includeBase64: false,
+    };
+
+    launchImageLibrary(options, response => {
+      if (response.didCancel) {
+        console.log('Usuario canceló la selección de imagen');
+      } else if (response.errorCode) {
+        console.log('Error al seleccionar imagen: ', response.errorMessage);
+        Alert.alert('Error', 'No se pudo seleccionar la imagen');
+      } else if (response.assets && response.assets.length > 0) {
+        setImageUri(response.assets[0].uri);
+      }
+    });
+  };
+
+  // Función para tomar una foto con la cámara
+  const takePhoto = () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.7,
+      includeBase64: false,
+      saveToPhotos: true,
+    };
+
+    launchCamera(options, response => {
+      if (response.didCancel) {
+        console.log('Usuario canceló la cámara');
+      } else if (response.errorCode) {
+        console.log('Error de cámara: ', response.errorMessage);
+        Alert.alert('Error', 'No se pudo acceder a la cámara');
+      } else if (response.assets && response.assets.length > 0) {
+        setImageUri(response.assets[0].uri);
+      }
+    });
+  };
+
+  // Función para subir la imagen a Firebase Storage
+  const uploadImageToFirebase = async () => {
+    if (!imageUri) {
+      return null; // No hay imagen para subir
+    }
+
+    setImageUploading(true);
+    try {
+      // Generar un nombre único para la imagen basado en el ID del estudiante y la fecha
+      const filename = `class_images/${studentInfo.id}_${Date.now()}.jpg`;
+      const reference = storage().ref(filename);
+      
+      // Sube la imagen a Firebase Storage
+      await reference.putFile(imageUri);
+      
+      // Obtiene la URL de descarga de la imagen
+      const url = await reference.getDownloadURL();
+      setImageUrl(url);
+      setImageUploading(false);
+      
+      return url;
+    } catch (error) {
+      console.error('Error al subir imagen:', error);
+      Alert.alert('Error', 'No se pudo subir la imagen');
+      setImageUploading(false);
+      return null;
+    }
+  };
+
+  // Mostrar opciones para elegir imagen
+  const showImageOptions = () => {
+    Alert.alert(
+      'Subir imagen de clase',
+      '¿Cómo quieres subir la imagen?',
+      [
+        {
+          text: 'Seleccionar de la galería',
+          onPress: selectImageFromGallery,
+        },
+        {
+          text: 'Tomar una foto',
+          onPress: takePhoto,
+        },
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+      ],
+      {cancelable: true},
+    );
+  };
+
   // Asegúrate de que los datos de las métricas se envíen correctamente
   const handleConfirm = async () => {
     if (!validateForm()) return;
     setLoading(true);
+
+     // Primero subimos la imagen si existe
+    let uploadedImageUrl = null;
+    if (imageUri) {
+      uploadedImageUrl = await uploadImageToFirebase();
+      if (!uploadedImageUrl) {
+        setLoading(false);
+        return; // Si hay un error al subir la imagen, detener el proceso
+      }
+    }
 
     // Aquí nos aseguramos de que todas las métricas y ejercicios estén completos
     const payload = {
@@ -122,6 +233,7 @@ const RegisterEvaluationScreen = () => {
       exercises: formData.selectedExercises,
       metrics: formData.ratings, // Asegúrate de que todas las métricas estén correctamente asignadas
       comments: formData.comments,
+      imageUrl: uploadedImageUrl,
     };
 
     try {
@@ -150,6 +262,7 @@ const RegisterEvaluationScreen = () => {
               exercises: formData.selectedExercises, // Pasamos los ejercicios
               ratings: formData.ratings, // Pasamos las métricas (calificaciones)
               averageScore: json.evaluation?.averageScore,
+              imageUrl: uploadedImageUrl,
             }),
         },
       ]);
@@ -173,7 +286,7 @@ const RegisterEvaluationScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={{ ...styles.scrollContent, flexGrow: 1, paddingBottom: 120 }}>
         <Text style={styles.title}>Registro de Evaluación</Text>
 
         <View style={styles.studentInfoContainer}>
@@ -243,19 +356,48 @@ const RegisterEvaluationScreen = () => {
           />
         </View>
 
+        {/* SECCIÓN DE IMAGEN DE CLASE */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Imagen de la Clase</Text>
+          
+          {imageUri ? (
+            <View style={styles.imageContainer}>
+              <Image source={{uri: imageUri}} style={styles.previewImage} />
+              <TouchableOpacity 
+                style={styles.changeImageButton}
+                onPress={showImageOptions}>
+                <Text style={styles.changeImageText}>Cambiar imagen</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity 
+              style={styles.uploadImageButton} 
+              onPress={showImageOptions}>
+              <Text style={styles.uploadImageText}>Seleccionar imagen</Text>
+            </TouchableOpacity>
+          )}
+          
+          {imageUploading && (
+            <View style={styles.uploadingContainer}>
+              <ActivityIndicator size="small" color="#1d8a9e" />
+              <Text style={styles.uploadingText}>Subiendo imagen...</Text>
+            </View>
+          )}
+        </View>
+
         {/* Botón de acción */}
         <View style={styles.actionContainer}>
-          <TouchableOpacity style={styles.button} onPress={handleConfirm}>
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={handleConfirm}
+            disabled={loading || imageUploading}>
             <Text style={styles.buttonText}>Confirmar Registro</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.buttonSecondary}>
-            <Text style={styles.buttonText}>Subir imagen de la clase</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
       <Navbar
         navigateToHome={() => navigation.navigate('TeacherHome')}
-        navigateToProfile={() => navigation.navigate('TeacherProfileScreen')}
+        navigateToProfile={() => navigation.navigate('UserProfileScreen', { userType: 'teacher' })}
       />
     </SafeAreaView>
   );
@@ -334,14 +476,6 @@ const styles = StyleSheet.create({
     width: '80%',
   },
   buttonText: {color: '#fff', fontSize: 16, fontWeight: 'bold'},
-  buttonSecondary: {
-    backgroundColor: '#90EE90',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
-    width: '80%',
-  },
   radioHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -378,6 +512,52 @@ const styles = StyleSheet.create({
   selectedRadio: {
     borderColor: '#C71585',
     backgroundColor: '#C71585',
+  },
+  // Estilos para la sección de imágenes
+  imageContainer: {
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  previewImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  uploadImageButton: {
+    backgroundColor: '#90EE90',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  uploadImageText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  changeImageButton: {
+    backgroundColor: '#FFA500',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    width: '50%',
+  },
+  changeImageText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  uploadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  uploadingText: {
+    marginLeft: 10,
+    fontSize: 14,
+    color: '#1d8a9e',
   },
 });
 

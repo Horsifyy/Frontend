@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Platform,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -16,16 +16,23 @@ import {API_URL} from '../../api/config';
 import auth from '@react-native-firebase/auth';
 import Navbar from '../navigation/Navbar';
 
+const levelColors = {
+  Amarillo: '#FFC107',
+  Rojo: '#F44336',
+  Azul: '#2196F3',
+};
+
 const StudentDashboard = () => {
   const navigation = useNavigation();
   const [studentInfo, setStudentInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [averageScore, setAverageScore] = useState(null);
 
   useEffect(() => {
     fetchStudentInfo();
+    fetchAverageScore();
   }, []);
 
-  // Fetch the student data
   const fetchStudentInfo = async () => {
     try {
       const currentUser = auth().currentUser;
@@ -44,7 +51,7 @@ const StudentDashboard = () => {
           data.error || 'No se pudo obtener la información del estudiante',
         );
 
-      setStudentInfo(data); // Asigna los datos del estudiante a su estado
+      setStudentInfo(data);
     } catch (error) {
       console.error(
         'Error al obtener la información del estudiante:',
@@ -56,10 +63,35 @@ const StudentDashboard = () => {
     }
   };
 
+  // Traer promedio del desempeño
+  const fetchAverageScore = async () => {
+    try {
+      const currentUser = auth().currentUser;
+      if (!currentUser) return;
+
+      const idToken = await currentUser.getIdToken(true);
+
+      const lastEvalResponse = await fetch(
+        `${API_URL}/api/evaluations/last/${currentUser.uid}`,
+        {
+          headers: { Authorization: `Bearer ${idToken}` },
+        }
+      );
+      const lastEval = await lastEvalResponse.json();
+
+      if (lastEval.averageScore) {
+        setAverageScore(parseFloat(lastEval.averageScore));
+      } else {
+        setAverageScore(null);
+      }
+    } catch (error) {
+      console.error('Error al obtener promedio:', error.message);
+      setAverageScore(null);
+    }
+  };
+
   const navigateToPerformance = () => {
-    navigation.navigate('ProgressReport', {
-      studentData: studentInfo,
-    });
+   navigation.navigate('LastReportScreen');
   };
 
   const navigateToRewards = () => {
@@ -75,7 +107,7 @@ const StudentDashboard = () => {
   };
 
   const navigateToProfile = () => {
-    navigation.navigate('StudentProfile');
+    navigation.navigate('UserProfileScreen', {userType: 'student'});
   };
 
   return (
@@ -86,12 +118,29 @@ const StudentDashboard = () => {
           <ActivityIndicator size="large" color="#2B8C96" />
         ) : (
           <>
-            <Text style={styles.greeting}>
-              Hola, {studentInfo?.name || 'Estudiante'}
-            </Text>
-            <Text style={styles.level}>
-              Nivel: {studentInfo?.lupeLevel || 'Desconocido'}
-            </Text>
+            <View style={styles.profilePicContainer}>
+              {studentInfo?.profilePicture ? (
+                <Image
+                  source={{ uri: studentInfo.profilePicture }}
+                  style={styles.profileImage}
+                />
+              ) : (
+                <Icon name="account-circle" size={60} color="#999" />
+              )}
+            </View>
+
+            <View style={styles.greetingContainer}>
+              <Text style={styles.greeting}>
+                Hola, {studentInfo?.name || 'Estudiante'}
+              </Text>
+              <Text
+                style={[
+                  styles.level,
+                  {color: levelColors[studentInfo?.lupeLevel] || '#999'},
+                ]}>
+                Nivel: {studentInfo?.lupeLevel || 'Desconocido'}
+              </Text>
+            </View>
           </>
         )}
       </View>
@@ -107,7 +156,7 @@ const StudentDashboard = () => {
               <Icon name="fire" size={30} color="#fff" />
             </View>
             <Text style={styles.scoreText}>
-              {studentInfo?.performanceScore || '--'}
+              {averageScore !== null ? averageScore.toFixed(2) : '--'}
             </Text>
             <Text style={styles.cardLabel}>Desempeño</Text>
           </TouchableOpacity>
@@ -144,52 +193,33 @@ const StudentDashboard = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
+  container: {flex: 1, backgroundColor: '#f5f5f5'},
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 15,
     backgroundColor: '#ffffff',
   },
-  greeting: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333333',
-  },
-  profileImageContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  profilePicContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
+    marginRight: 15,
   },
-  profileImagePlaceholder: {
+  profileImage: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#dddddd',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  profileInitial: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#666666',
+  greetingContainer: {
+    flexDirection: 'column',
   },
-  cardsContainer: {
-    flex: 1,
-    padding: 15,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
+  greeting: {fontSize: 24, fontWeight: 'bold', color: '#333333'},
+  level: {fontSize: 16},
+  cardsContainer: {flex: 1, padding: 15},
+  row: {flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15},
   card: {
     borderRadius: 15,
     padding: 15,
@@ -200,28 +230,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  performanceCard: {
-    backgroundColor: '#ff7b7b',
-    width: '48%',
-    height: 150,
-    alignItems: 'center',
-  },
-  rewardsCard: {
-    backgroundColor: '#4abebd',
-    width: '48%',
-    height: 150,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  scheduleCard: {
-    backgroundColor: '#4abebd',
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 100,
-  },
-  fullWidthCard: {
-    width: '100%',
-  },
+  performanceCard: {backgroundColor: '#ff7b7b', width: '48%', height: 150, alignItems: 'center'},
+  rewardsCard: {backgroundColor: '#4abebd', width: '48%', height: 150, justifyContent: 'center', alignItems: 'flex-start'},
+  scheduleCard: {backgroundColor: '#4abebd', flexDirection: 'row', alignItems: 'center', height: 100},
+  fullWidthCard: {width: '100%'},
   iconContainer: {
     width: 60,
     height: 60,
@@ -230,54 +242,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-  performanceIconContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  rewardsIconContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginBottom: 5,
-  },
-  scheduleIconContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginRight: 15,
-  },
-  scoreText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  cardLabel: {
-    fontSize: 18,
-    color: '#ffffff',
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  scheduleTextContainer: {
-    flexDirection: 'column',
-  },
-  scheduleTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  navbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-    height: 60,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    height: '100%',
-  },
+  performanceIconContainer: {backgroundColor: 'rgba(255, 255, 255, 0.3)'},
+  rewardsIconContainer: {backgroundColor: 'rgba(255, 255, 255, 0.3)', marginBottom: 5},
+  scheduleIconContainer: {backgroundColor: 'rgba(255, 255, 255, 0.3)', marginRight: 15},
+  scoreText: {fontSize: 32, fontWeight: 'bold', color: '#ffffff'},
+  cardLabel: {fontSize: 18, color: '#ffffff'},
+  cardTitle: {fontSize: 18, fontWeight: 'bold', color: '#ffffff'},
+  scheduleTextContainer: {flexDirection: 'column'},
+  scheduleTitle: {fontSize: 18, fontWeight: 'bold', color: '#ffffff'},
 });
 
 export default StudentDashboard;

@@ -1,20 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import auth from '@react-native-firebase/auth';
 import { API_URL } from '../../api/config';
 import Navbar from '../navigation/Navbar';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const TeacherProfileScreen = () => {
+const UserProfileScreen = () => {
   const navigation = useNavigation();
-  const [teacherInfo, setTeacherInfo] = useState(null);
+  const route = useRoute();
+
+  // Recibe tipo de usuario vía params o 'student' por defecto
+  const { userType = 'student' } = route.params || {};
+
+  const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchTeacherInfo();
-  }, []);
-
-  const fetchTeacherInfo = async () => {
+  // Obtener datos usuario actual
+  const fetchUserInfo = async () => {
     try {
       const currentUser = auth().currentUser;
       if (!currentUser) throw new Error('Usuario no autenticado');
@@ -28,59 +39,93 @@ const TeacherProfileScreen = () => {
       const data = await response.json();
 
       if (!response.ok)
-        throw new Error(
-          data.error || 'No se pudo obtener la información del profesor',
-        );
+        throw new Error(data.error || 'No se pudo obtener la información del usuario');
 
-      setTeacherInfo(data); // Asigna los datos del profesor a su estado
+      setUserInfo(data);
     } catch (error) {
-      console.error('Error al obtener la información del profesor:', error.message);
+      console.error('Error al obtener la información:', error.message);
       Alert.alert('Error', 'No se pudo obtener la información del perfil.');
     } finally {
       setLoading(false);
     }
   };
 
+  // Actualiza datos si vienen por params desde edición
+  useEffect(() => {
+    if (
+      route.params?.updatedName ||
+      route.params?.updatedProfilePicture ||
+      route.params?.updatedLevel
+    ) {
+      setUserInfo((prev) => ({
+        ...prev,
+        name: route.params.updatedName || prev?.name,
+        profilePicture: route.params.updatedProfilePicture || prev?.profilePicture,
+        lupeLevel: route.params.updatedLevel || prev?.lupeLevel,
+      }));
+    }
+  }, [route.params]);
+
+  useEffect(() => {
+    fetchUserInfo();
+  }, []);
+
   const handleLogout = async () => {
     try {
       await auth().signOut();
-      navigation.navigate('Login'); // O la pantalla de inicio de sesión
+      navigation.navigate('Login');
     } catch (error) {
       console.error('Error al cerrar sesión:', error.message);
     }
   };
 
   const navigateToEditProfile = () => {
-    navigation.navigate('EditTeacherProfileScreen'); // Navegar a la pantalla de edición del perfil
+    if (userType === 'teacher') {
+      navigation.navigate('EditProfile', { userType: 'teacher' });
+    } else {
+      navigation.navigate('EditProfile', { userType: 'student' });
+    }
   };
 
   return (
     <View style={styles.container}>
       {loading ? (
         <ActivityIndicator size="large" color="#2B8C96" />
-      ) : teacherInfo ? (
+      ) : userInfo ? (
         <View style={styles.profileContainer}>
-          <Text style={styles.title}>Perfil del Profesor</Text>
+          <Text style={styles.title}>
+            {userType === 'teacher' ? 'Perfil del Profesor' : 'Perfil'}
+          </Text>
 
           <View style={styles.profileHeader}>
-            <Image
-              style={styles.profileImage}
-              source={{ uri: teacherInfo.profilePicture }}
-            />
-            <Text style={styles.profileName}>{teacherInfo.name}</Text>
-            {/* No mostramos nivel, porque el profesor no tiene nivel */}
+            {userInfo.profilePicture ? (
+              <Image
+                style={styles.profileImage}
+                source={{ uri: userInfo.profilePicture }}
+              />
+            ) : (
+              <View style={[styles.profileImage, styles.iconFallback]}>
+                <MaterialIcons name="person" size={80} color="#999" />
+              </View>
+            )}
+            <Text style={styles.profileName}>{userInfo.name}</Text>
+            {userType === 'student' && (
+              <Text style={styles.profileLevel}>Nivel: {userInfo.lupeLevel}</Text>
+            )}
           </View>
 
           <View style={styles.optionsContainer}>
             <TouchableOpacity
               style={styles.editButton}
-              onPress={navigateToEditProfile}>
+              onPress={navigateToEditProfile}
+            >
               <Text style={styles.editButtonText}>Editar perfil</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.logoutButton}
-              onPress={handleLogout}>
+              onPress={handleLogout}
+            >
               <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
             </TouchableOpacity>
           </View>
@@ -89,10 +134,13 @@ const TeacherProfileScreen = () => {
         <Text>No se encontró información del perfil.</Text>
       )}
 
-      {/* Navbar */}
       <Navbar
-        navigateToHome={() => navigation.navigate('TeacherHome')}
-        navigateToProfile={() => navigation.navigate('TeacherProfile')}
+        navigateToHome={() =>
+          navigation.navigate(userType === 'teacher' ? 'TeacherHome' : 'StudentDashboard')
+        }
+        navigateToProfile={() =>
+          navigation.navigate(userType === 'teacher' ? 'TeacherProfileScreen' : 'StudentProfile')
+        }
       />
     </View>
   );
@@ -133,6 +181,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
+  profileLevel: {
+    fontSize: 16,
+    color: '#777',
+  },
   optionsContainer: {
     width: '80%',
     alignItems: 'center',
@@ -162,6 +214,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  iconFallback: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#eee',
+    borderWidth: 3,
+    borderColor: '#2B8C96',
+  },
 });
 
-export default TeacherProfileScreen;
+export default UserProfileScreen;
